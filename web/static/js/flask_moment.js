@@ -20,6 +20,7 @@ function flask_moment_render(elem) {{
     elem.classList.remove('flask-moment');
     elem.style.display = "";
 }}
+
 function flask_moment_render_all() {{
     const moments = document.querySelectorAll('.flask-moment');
     moments.forEach(function(moment) {{

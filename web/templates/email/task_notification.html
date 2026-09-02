@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;margin:0;">
+<head>
+  <meta name="viewport" content="width=device-width" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon/favicon.png') }}" sizes="128x128">
+  <title>{{ subject_title|default('Notification') }} · Workforce</title>
+  <style type="text/css">
+    body { -webkit-font-smoothing: antialiased; width: 100% !important; height: 100%; line-height: 1.6em; background-color: #f1f3f9; margin: 0; padding: 0; }
+    img { max-width: 100%; }
+    @media only screen and (max-width: 640px) {
+      .wrap { width: 100% !important; padding: 0 12px !important; }
+      .card { padding: 20px !important; }
+    }
+  </style>
+</head>
+<body style="background-color:#f1f3f9;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f3f9;">
+    <tr>
+      <td align="center" style="padding: 32px 12px;">
+        <table class="wrap" width="560" cellpadding="0" cellspacing="0" style="width:560px;">
+          <tr>
+            <td align="center" style="padding-bottom: 18px;">
+              <span style="font-size:20px; font-weight:800; color:#1e293b; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Workforce</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="card" style="background:#ffffff; border-radius:14px; padding:32px; box-shadow:0 1px 3px rgba(0,0,0,.06);">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding-bottom:14px;">
+                    <span style="display:inline-block; font-size:11px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:#4f46e5; background:#eef2ff; padding:4px 10px; border-radius:99px;">{{ badge|default('Notification') }}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size:18px; font-weight:800; color:#111827; padding-bottom:10px; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    {{ title }}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size:14px; color:#374151; padding-bottom:6px; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    Hi {{ user.name or user.username }},
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size:14px; color:#374151; line-height:1.6; padding-bottom:24px; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    {{ message }}
+                  </td>
+                </tr>
+                {% if action_url %}
+                <tr>
+                  <td>
+                    <a href="{{ action_url }}" style="display:inline-block; background:#4f46e5; color:#ffffff; text-decoration:none; font-weight:700; font-size:13px; padding:11px 22px; border-radius:8px; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                      {{ action_label|default('View in Workforce') }}
+                    </a>
+                  </td>
+                </tr>
+                {% endif %}
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-top:20px; font-size:11px; color:#9ca3af; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+              You're receiving this because it relates to work assigned to you on Workforce.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

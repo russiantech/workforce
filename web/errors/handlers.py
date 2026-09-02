@@ -18,7 +18,7 @@ def error_400(error):
     """ 400 (BAD REQUEST """
     if wants_json_response():
         return api_error_response(400)
-    return render_template('errors/403.html', e=error), 400
+    return render_template('errors/400.html', e=error), 400
 
 @errors_bp.app_errorhandler(403)
 def error_403(error):

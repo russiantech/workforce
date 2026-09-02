@@ -18,10 +18,53 @@ aria-labelledby="taskModalScrollableTitle" aria-modal="true" role="dialog">
                             <div>
                                 <h4 class="mb-3">Records</h4>
                             </div>
-                            <button class="btn btn-danger delete-attendance-all"> <i class="ri-delete-bin-line mr-0"></i> Delete All</button>
+                            <button class="btn btn-danger delete-attendance-all">
+                                 <i class="ri-delete-bin-line mr-0"></i> Delete All</button>
 
-                            <button id="download_button" class="btn btn-warning" onclick="downloadCsvAttendance()">
-                                <i class="las la-download mr-1"></i>Download  Csv</button>
+                                <select name="deletion" class="custom-select col-2">
+                                    <option value="">
+                                        <i class="ri-delete-bin-line mr-0"></i> Deletion
+                                    </option>
+                                    <option value="general">
+                                        General
+                                    </option>
+                                    <option value="staffs">
+                                        Staff Only
+                                    </option>
+                                    
+                                    <option value="students">
+                                        Students Only
+                                    </option>
+
+                                    <option value="customers">
+                                        Customers Only
+                                    </option>
+                                    
+                                </select>
+
+                                <!-- <select name="download" onchange="triggerDownload()" class="custom-select col-2"> -->
+                                <select name="download" onchange="triggerDownload(this)" class="custom-select col-2">
+
+                                    <option value="">
+                                        <i class="las la-download mr-1"></i> Download  CSV
+                                    </option>
+                                    <option value="general">
+                                        General
+                                    </option>
+                                    <option value="staffs">
+                                        Staff Only
+                                    </option>
+                                    
+                                    <option value="students">
+                                        Students Only
+                                    </option>
+
+                                    <option value="customers">
+                                        Customers Only
+                                    </option>
+                                    
+                                </select>
+                            <!-- </button> -->
                         </div>
                     </div>
                     
@@ -77,21 +120,23 @@ aria-labelledby="taskModalScrollableTitle" aria-modal="true" role="dialog">
 
 <script>
 
-    /*function downloadCsvAttendance() {
-        window.location.href = './download_csv-attendance';
-    }*/
+    function triggerDownload(element) {
+    const category = $(element).val();
+    if (!category) return; // Don't trigger if nothing is selected
 
-    function downloadCsvAttendance() {
-        // Change button text and show spinner
-        $('#download_button').html('<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span> Loading...');
-
-        // Trigger the CSV download
-        window.location.href = './download_csv-attendance';
-
-        // Optionally, restore button text after some delay (adjust this if needed)
-        setTimeout(function() {
-            $('#download_button').html('Download Attendance CSV');
-        }, 3000);  // Adjust timeout based on server response time
+    // Optional: Show spinner or disable button
+    const $button = $('#download_button');
+    if ($button.length) {
+        $button.html('<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span> downloading...');
+        setTimeout(function () {
+            $button.text('Download-CSV');
+        }, 3000);
     }
+
+    const url = `/download-attendance-csv/${category.toLowerCase()}`;
+    console.log("Downloading:", url);
+    window.location.href = url;
+}
+
     
 </script>

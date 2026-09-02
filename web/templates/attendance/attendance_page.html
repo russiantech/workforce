@@ -1,0 +1,507 @@
+{% extends 'base.html' %}
+{% block title %}Attendance Records{% endblock title %}
+
+{% block content %}
+<div class="wrapper">
+    {% include 'incs/sidenav.html' %}
+    {% include 'incs/topnav.html' %}
+
+    <div class="content-page">
+        <div class="container-fluid">
+
+            <!-- Page Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <h3 class="mb-1">
+                                <i class="ri-calendar-check-line mr-2 text-primary"></i>
+                                Attendance Records
+                            </h3>
+                            <p class="mb-0 text-muted" style="font-size:.875rem">
+                                {% if current_user.is_admin() %}
+                                    Organisation-wide attendance log. Filter, export and manage records.
+                                {% else %}
+                                    Your personal attendance history.
+                                {% endif %}
+                            </p>
+                        </div>
+                        <!-- Export button group -->
+                        <div class="d-flex align-items-center flex-wrap" style="gap:.5rem">
+                            {% if current_user.is_admin() %}
+                            <button class="btn btn-outline-danger btn-sm" id="btnTriggerEmail">
+                                <i class="ri-mail-send-line mr-1"></i>Send Weekly Email
+                            </button>
+                            {% endif %}
+                            <button class="btn btn-success btn-sm" id="btnExportCsv">
+                                <i class="ri-download-2-line mr-1"></i>Export CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Card -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-block">
+                        <div class="card-body">
+                            <div class="row align-items-end" style="gap:.5rem 0">
+
+                                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                                    <label class="form-label mb-1" style="font-size:.8rem;font-weight:600">From</label>
+                                    <input type="date" id="filterFrom" class="form-control form-control-sm">
+                                </div>
+
+                                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                                    <label class="form-label mb-1" style="font-size:.8rem;font-weight:600">To</label>
+                                    <input type="date" id="filterTo" class="form-control form-control-sm">
+                                </div>
+
+                                {% if current_user.is_admin() %}
+                                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                                    <label class="form-label mb-1" style="font-size:.8rem;font-weight:600">Category</label>
+                                    <select id="filterCategory" class="custom-select custom-select-sm">
+                                        <option value="">All</option>
+                                        <option value="staff">Staff</option>
+                                        <option value="student">Students</option>
+                                        <option value="customer">Customers</option>
+                                        <option value="intern-staff">Interns</option>
+                                    </select>
+                                </div>
+                                {% endif %}
+
+                                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                                    <label class="form-label mb-1" style="font-size:.8rem;font-weight:600">Quick Range</label>
+                                    <select id="quickRange" class="custom-select custom-select-sm">
+                                        <option value="">Custom</option>
+                                        <option value="7"  selected>Last 7 days</option>
+                                        <option value="14">Last 14 days</option>
+                                        <option value="30">Last 30 days</option>
+                                        <option value="90">Last 90 days</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12 col-sm-4 col-md-3 col-lg-2">
+                                    <label class="form-label mb-1" style="font-size:.8rem;font-weight:600">&nbsp;</label>
+                                    <div class="d-flex" style="gap:.4rem">
+                                        <button class="btn btn-primary btn-sm flex-fill" id="btnApplyFilter">
+                                            <i class="ri-search-line mr-1"></i>Search
+                                        </button>
+                                        <button class="btn btn-light btn-sm" id="btnClearFilter" title="Clear">
+                                            <i class="ri-refresh-line"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary stat cards -->
+            <div class="row mb-4" id="statCards">
+                <div class="col-6 col-md-3">
+                    <div class="card card-block card-stretch">
+                        <div class="card-body d-flex align-items-center" style="gap:1rem">
+                            <div class="rounded p-2" style="background:#eff6ff;color:#2563eb;font-size:1.4rem"><i class="ri-group-line"></i></div>
+                            <div>
+                                <div style="font-size:1.5rem;font-weight:800;line-height:1" id="statTotal">—</div>
+                                <div style="font-size:.75rem;color:#64748b">Total Records</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card card-block card-stretch">
+                        <div class="card-body d-flex align-items-center" style="gap:1rem">
+                            <div class="rounded p-2" style="background:#d1fae5;color:#059669;font-size:1.4rem"><i class="ri-user-star-line"></i></div>
+                            <div>
+                                <div style="font-size:1.5rem;font-weight:800;line-height:1" id="statUsers">—</div>
+                                <div style="font-size:.75rem;color:#64748b">Unique Staff</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card card-block card-stretch">
+                        <div class="card-body d-flex align-items-center" style="gap:1rem">
+                            <div class="rounded p-2" style="background:#fef3c7;color:#d97706;font-size:1.4rem"><i class="ri-time-line"></i></div>
+                            <div>
+                                <div style="font-size:1.5rem;font-weight:800;line-height:1" id="statAvg">—</div>
+                                <div style="font-size:.75rem;color:#64748b">Avg. Duration (min)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card card-block card-stretch">
+                        <div class="card-body d-flex align-items-center" style="gap:1rem">
+                            <div class="rounded p-2" style="background:#ede9fe;color:#7c3aed;font-size:1.4rem"><i class="ri-calendar-2-line"></i></div>
+                            <div>
+                                <div style="font-size:1.5rem;font-weight:800;line-height:1" id="statRange">—</div>
+                                <div style="font-size:.75rem;color:#64748b">Date Range</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-block card-stretch">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <h5 class="mb-0" style="font-size:.95rem;font-weight:700">
+                                <i class="ri-list-check mr-2"></i>
+                                Records
+                            </h5>
+                            <span class="badge badge-primary" id="recordCountBadge">0</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <!-- Loading state -->
+                            <div id="tableLoading" class="text-center p-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Loading…</span>
+                                </div>
+                                <p class="mt-2 text-muted" style="font-size:.85rem">Loading records…</p>
+                            </div>
+
+                            <!-- Table -->
+                            <div id="tableWrapper" class="table-responsive" style="display:none">
+                                <table class="table table-hover mb-0" id="attendanceTable">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th style="width:50px">S/N</th>
+                                            <th>Staff Member</th>
+                                            <th>Date</th>
+                                            <th>Sign In</th>
+                                            <th>Sign Out</th>
+                                            <th>Duration</th>
+                                            {% if current_user.is_admin() %}<th style="width:80px">Action</th>{% endif %}
+                                        </tr>
+                                    </thead>
+                                    <tbody id="attendanceTbody"></tbody>
+                                </table>
+                            </div>
+
+                            <!-- Empty state -->
+                            <div id="tableEmpty" class="text-center p-5" style="display:none">
+                                <i class="ri-calendar-line" style="font-size:3rem;color:#cbd5e1"></i>
+                                <h6 class="mt-3 text-muted">No records found</h6>
+                                <p class="text-muted" style="font-size:.85rem">Try adjusting your date range or filters.</p>
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="card-footer d-flex align-items-center justify-content-between flex-wrap" style="gap:.5rem">
+                            <small class="text-muted" id="paginationInfo"></small>
+                            <nav>
+                                <ul class="pagination pagination-sm mb-0" id="paginationControls"></ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /container-fluid -->
+    </div><!-- /content-page -->
+</div><!-- /wrapper -->
+
+{% include 'incs/response_modal.html' %}
+{% endblock content %}
+
+{% block page_js %}
+<script>
+/* ── State ─────────────────────────────────────────── */
+let currentPage = 1;
+const PER_PAGE  = 50;
+let totalPages  = 1;
+
+/* ── Init ──────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+    // Default: last 7 days
+    setQuickRange(7);
+    loadRecords();
+
+    document.getElementById('btnApplyFilter').addEventListener('click', () => { currentPage=1; loadRecords(); });
+    document.getElementById('btnClearFilter').addEventListener('click', clearFilters);
+    document.getElementById('btnExportCsv').addEventListener('click', exportCsv);
+
+    document.getElementById('quickRange').addEventListener('change', function() {
+        const v = parseInt(this.value);
+        if (v) setQuickRange(v);
+    });
+
+    {% if current_user.is_admin() %}
+    document.getElementById('btnTriggerEmail').addEventListener('click', triggerEmail);
+    {% endif %}
+});
+
+/* ── Quick range helper ─────────────────────────────── */
+function setQuickRange(days) {
+    const to   = new Date();
+    const from = new Date();
+    from.setDate(to.getDate() - (days - 1));
+    document.getElementById('filterFrom').value = fmtDate(from);
+    document.getElementById('filterTo').value   = fmtDate(to);
+}
+
+function fmtDate(d) {
+    return d.toISOString().split('T')[0];
+}
+
+function clearFilters() {
+    document.getElementById('filterFrom').value = '';
+    document.getElementById('filterTo').value   = '';
+    const cat = document.getElementById('filterCategory');
+    if (cat) cat.value = '';
+    document.getElementById('quickRange').value = '';
+    currentPage = 1;
+    loadRecords();
+}
+
+/* ── Load records ───────────────────────────────────── */
+async function loadRecords() {
+    showLoading(true);
+
+    const params = buildParams();
+    params.set('page', currentPage);
+    params.set('per_page', PER_PAGE);
+
+    try {
+        const resp = await fetch('/api/attendance?' + params);
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || resp.statusText);
+
+        totalPages = data.pages || 1;
+        renderTable(data.records || []);
+        renderPagination(data.total || 0);
+        loadStats(params);
+    } catch(e) {
+        showLoading(false);
+        showError(e.message);
+    }
+}
+
+/* ── Build query params ─────────────────────────────── */
+function buildParams() {
+    const p = new URLSearchParams();
+    const from = document.getElementById('filterFrom').value;
+    const to   = document.getElementById('filterTo').value;
+    const cat  = document.getElementById('filterCategory')?.value;
+    if (from) p.set('date_from', from);
+    if (to)   p.set('date_to',   to);
+    if (cat)  p.set('category',  cat);
+    return p;
+}
+
+/* ── Load stats ─────────────────────────────────────── */
+async function loadStats(params) {
+    try {
+        const resp = await fetch('/api/attendance/stats?' + params);
+        const data = await resp.json();
+        if (!resp.ok) return;
+
+        setText('statTotal', data.total_records ?? '—');
+        setText('statUsers', data.unique_users  ?? '—');
+        setText('statAvg',   data.avg_duration_min != null ? data.avg_duration_min + ' min' : '—');
+
+        const from = document.getElementById('filterFrom').value;
+        const to   = document.getElementById('filterTo').value;
+        if (from && to) {
+            setText('statRange', shortDate(from) + '–' + shortDate(to));
+        } else {
+            setText('statRange', '—');
+        }
+    } catch(e) { /* non-critical */ }
+}
+
+/* ── Render table ───────────────────────────────────── */
+function renderTable(records) {
+    showLoading(false);
+    const tbody = document.getElementById('attendanceTbody');
+
+    if (!records.length) {
+        document.getElementById('tableWrapper').style.display = 'none';
+        document.getElementById('tableEmpty').style.display   = 'block';
+        setText('recordCountBadge', '0');
+        return;
+    }
+
+    document.getElementById('tableWrapper').style.display = 'block';
+    document.getElementById('tableEmpty').style.display   = 'none';
+    setText('recordCountBadge', records.length);
+
+    const offset = (currentPage - 1) * PER_PAGE;
+    tbody.innerHTML = records.map((r, i) => {
+        const dur = r.duration_min != null
+            ? (r.duration_min >= 60
+                ? Math.floor(r.duration_min/60) + 'h ' + Math.round(r.duration_min%60) + 'm'
+                : r.duration_min + 'm')
+            : '<span class="text-muted">—</span>';
+
+        const ini = initials(r.user_name);
+        const av  = r.user_photo
+            ? `<img src="${r.user_photo}" class="rounded-circle mr-2" width="28" height="28" style="object-fit:cover">`
+            : `<span class="rounded-circle d-inline-flex align-items-center justify-content-center mr-2" style="width:28px;height:28px;background:#eff6ff;color:#2563eb;font-size:.6rem;font-weight:700">${ini}</span>`;
+
+        const roles = (r.user_roles || []).map(role =>
+            `<span class="badge badge-soft-primary" style="font-size:.65rem">${esc(role)}</span>`
+        ).join(' ');
+
+        {% if current_user.is_admin() %}
+        const actionBtn = `<button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="deleteRecord(${r.id})" title="Delete"><i class="ri-delete-bin-line"></i></button>`;
+        {% else %}
+        const actionBtn = '';
+        {% endif %}
+
+        return `<tr>
+            <td>${offset + i + 1}</td>
+            <td>
+                <div class="d-flex align-items-center">
+                    ${av}
+                    <div>
+                        <div style="font-weight:600;font-size:.84rem">${esc(r.user_name)}</div>
+                        <div style="font-size:.72rem;color:#94a3b8">${roles}</div>
+                    </div>
+                </div>
+            </td>
+            <td style="font-size:.84rem">${r.date_display || '—'}</td>
+            <td><span class="badge badge-soft-success" style="font-size:.78rem">${r.sign_in || '—'}</span></td>
+            <td><span class="badge badge-soft-warning" style="font-size:.78rem">${r.sign_out || '—'}</span></td>
+            <td style="font-size:.82rem">${dur}</td>
+            {% if current_user.is_admin() %}<td>${actionBtn}</td>{% endif %}
+        </tr>`;
+    }).join('');
+}
+
+/* ── Pagination ─────────────────────────────────────── */
+function renderPagination(total) {
+    const info = document.getElementById('paginationInfo');
+    const ctrl = document.getElementById('paginationControls');
+
+    const from = (currentPage - 1) * PER_PAGE + 1;
+    const to   = Math.min(currentPage * PER_PAGE, total);
+    info.textContent = total ? `Showing ${from}–${to} of ${total} record${total!==1?'s':''}` : '';
+
+    if (totalPages <= 1) { ctrl.innerHTML = ''; return; }
+
+    let html = '';
+    if (currentPage > 1)
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="goPage(${currentPage-1});return false">«</a></li>`;
+
+    for (let p = Math.max(1, currentPage-2); p <= Math.min(totalPages, currentPage+2); p++) {
+        html += `<li class="page-item ${p===currentPage?'active':''}">
+            <a class="page-link" href="#" onclick="goPage(${p});return false">${p}</a></li>`;
+    }
+
+    if (currentPage < totalPages)
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="goPage(${currentPage+1});return false">»</a></li>`;
+
+    ctrl.innerHTML = html;
+}
+
+function goPage(p) { currentPage = p; loadRecords(); window.scrollTo(0,0); }
+
+/* ── Delete record ──────────────────────────────────── */
+async function deleteRecord(id) {
+    if (!confirm('Delete this attendance record?')) return;
+    try {
+        const resp = await fetch(`/delete-attendance/${id}`, { method: 'DELETE' });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || resp.statusText);
+        loadRecords();
+        showMsg('Record deleted', 'success');
+    } catch(e) { showMsg(e.message, 'danger'); }
+}
+
+/* ── Export CSV ─────────────────────────────────────── */
+function exportCsv() {
+    const params = buildParams();
+    window.location.href = '/api/attendance/export-csv?' + params;
+}
+
+/* ── Trigger weekly email ───────────────────────────── */
+async function triggerEmail() {
+    const btn = document.getElementById('btnTriggerEmail');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1"></span>Sending…';
+    try {
+        const resp = await fetch('/api/attendance/schedule-email', { method: 'POST' });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || resp.statusText);
+        showMsg('Weekly attendance email sent successfully!', 'success');
+    } catch(e) { showMsg(e.message, 'danger'); }
+    finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ri-mail-send-line mr-1"></i>Send Weekly Email';
+    }
+}
+
+/* ── UI helpers ─────────────────────────────────────── */
+function showLoading(state) {
+    document.getElementById('tableLoading').style.display  = state ? 'block' : 'none';
+    document.getElementById('tableWrapper').style.display  = state ? 'none'  : '';
+    document.getElementById('tableEmpty').style.display    = 'none';
+}
+function showError(msg) {
+    document.getElementById('tableLoading').style.display = 'none';
+    document.getElementById('tableWrapper').style.display = 'none';
+    document.getElementById('tableEmpty').innerHTML =
+        `<i class="ri-alert-line" style="font-size:3rem;color:#ef4444"></i>
+         <h6 class="mt-3">Something went wrong</h6>
+         <p class="text-muted" style="font-size:.85rem">${esc(msg)}</p>
+         <button class="btn btn-sm btn-outline-primary mt-2" onclick="loadRecords()">Retry</button>`;
+    document.getElementById('tableEmpty').style.display = 'block';
+}
+/*
+function showMsg(msg, type='success') {
+    // Uses existing Bootstrap toast / alert pattern if available
+    if (typeof showMessage === 'function') { showMessage(msg, type); return; }
+    const el = document.createElement('div');
+    el.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    el.style.cssText = 'bottom:1.5rem;right:1.5rem;z-index:9999;min-width:280px';
+    el.innerHTML = `${esc(msg)}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+}
+*/
+function showMsg(msg, type='success') {
+    const colors = { success: '#065f46', danger: '#991b1b', warning: '#78350f', info: '#1e40af' };
+    const icons  = { success: 'ri-checkbox-circle-line', danger: 'ri-close-circle-line', warning: 'ri-alert-line', info: 'ri-information-line' };
+
+    let container = document.getElementById('_toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = '_toastContainer';
+        container.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.style.cssText = `background:${colors[type]||colors.info};color:#fff;border-radius:10px;padding:.65rem 1rem;font-size:.84rem;font-family:inherit;display:flex;align-items:center;gap:.55rem;pointer-events:all;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:320px;animation:_tin .22s ease`;
+    toast.innerHTML = `<i class="${icons[type]||icons.info}" style="font-size:1rem;flex-shrink:0"></i><span>${esc(msg)}</span>`;
+
+    if (!document.getElementById('_toastStyle')) {
+        const s = document.createElement('style');
+        s.id = '_toastStyle';
+        s.textContent = '@keyframes _tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}';
+        document.head.appendChild(s);
+    }
+
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity .3s';
+        setTimeout(() => toast.remove(), 320);
+    }, 4000);
+}
+
+function setText(id, val) { const e = document.getElementById(id); if (e) e.textContent = val; }
+function initials(n) { return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'; }
+function shortDate(s) { return s ? s.slice(5) : ''; }
+function esc(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+{% endblock page_js %}

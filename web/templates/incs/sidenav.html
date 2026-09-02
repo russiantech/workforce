@@ -12,16 +12,7 @@
         style="overflow: hidden; outline: none;">
         <div class="scroll-content">
             <nav class="iq-sidebar-menu">
-
-                <style>
-                .disabled-link {
-                    pointer-events: none; /* Prevents clicking */
-                    color: gray; /* Change text color to indicate it's disabled */
-                    text-decoration: none; /* Remove underline */
-                    opacity: 0.5; /* Make it appear faded */
-                }
-                </style>
-
+                
                 <ul id="iq-sidebar-toggle" class="iq-menu">
                     <li class="{% if is_active('main.index')  %}active text-warning{% endif %}">
                         <a href="/" class="svg-icon">
@@ -39,78 +30,65 @@
 
                     <li class="{% if is_active('auth.update') %} active text-warning {% endif %}">
                         <a href="{{url_for('auth.update', username=current_user.username)}}">
-                            <svg class="svg-icon" id="p-dash3" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
+                            <i class="ri-user-star-line"></i>
                             <span class="ml-4">My Account</span>
                         </a>
                     </li>
 
-                    {#<li class="{% if is_active('auth.users') %} active text-warning {% endif %}">
-                        {% if current_user|has_role(['hr', 'md', 'dev']) %} 
+                    <li class="{% if is_active('project_views.projects_dashboard') or is_active('project_views.project_board') %} active text-warning {% endif %}">
+                        <a href="{{ url_for('project_views.projects_dashboard') }}">
+                            <i class="ri-folder-2-line"></i>
+                            <span class="ml-4">Projects </span>
+                        </a>
+                    </li>
+
+                    <li class="{% if is_active('daily_task_views.daily_tasks_page') %} active text-warning {% endif %}">
+                        <a href="{{ url_for('daily_task_views.daily_tasks_page') }}">
+                            <i class="ri-list-check-2"></i>
+                            <span class="ml-4">My Tasks</span>
+                        </a>
+                    </li>
+                    
+                    <li class="{% if is_active('roles_views.my_role_page') %} active text-success {% endif %}">
+                        <a href="/roles/my-role">
+                            <i class="ri-user-star-line"></i>
+                            <span class="ml-4">My Roles</span>
+                        </a>
+                    </li>
+                    
+                    <li class="{% if is_active('attendance_views.attendance_page') %} active text-warning {% endif %}">
+                        <a href="{{ url_for('attendance_views.attendance_page') }}">
+                             <i class="ri-calendar-check-line"></i>
+                            <span class="ml-4">My Attendance</span>
+                        </a>
+                    </li>
+
+                    {% if current_user|has_role(['hr', 'md', 'dev', 'md', 'admin']) %}
+                    
+                    <li class="{% if is_active('roles_views.roles_admin') %} active text-warning {% endif %}">
+                        <a href="/roles/admin">
+                            <i class="ri-briefcase-line"></i>
+                            <span class="ml-4">Manage Roles</span>
+                        </a>
+                    </li>
+
+                    <li class="{% if is_active('auth.users') %} active text-warning {% endif %}">
                         <a href="{{url_for('main.users')}}">
                             <i class="las la-users" style="font-size:25px"></i>
                             <span class="ml-4">Users</span>
-                            <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
-                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="10 15 15 20 20 15"></polyline>
-                                <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
-                            </svg>
-                        </a>
-                        {% endif %}
-                    </li>
-
-                    <li> 
-                        <button class="btn btn-outline-warning {% if not current_user|has_role(['hr', 'dev', 'analysis']) %} disabled {% endif %}" data-toggle="modal" data-target="#attendance_modal">
-                            <svg class="svg-icon" id="p-dash8" width="20" height="20" 
-                            xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                            <span class="ml-4">Attendance</span>
-                        </button>
-
-                    </li>#}
-                    <li class="{% if is_active('auth.users') %} active text-warning {% endif %}">
-                        <a href="{{url_for('main.users')}}" class="{% if not current_user|has_role(['hr', 'md', 'dev']) %} disabled-link {% endif %}">
-                            <i class="las la-users" style="font-size:25px"></i>
-                            <span class="ml-4">Users</span>
-                            <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
-                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="10 15 15 20 20 15"></polyline>
-                                <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
-                            </svg>
+                            
                         </a>
                     </li>
-                    <li> 
-                        <button class="btn btn-outline-warning" data-toggle="modal" data-target="#attendance_modal"  {% if not current_user|has_role(['hr', 'md', 'dev', 'analysis']) %} disabled {% endif %}>
-                            <svg class="svg-icon" id="p-dash8" width="20" height="20" 
-                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                            <span class="ml-4">Attendance</span>
-                        </button>
-                    </li>
-                    
-                    
 
+                    {% endif %}
+                    
                 </ul>
             </nav>
             <div id="sidebar-bottom" class="position-relative sidebar-bottom">
                 <div class="card border-none">
                     <div class="card-body p-0">
                         <div class="sidebarbottom-content">
-                            <div class="image"><img src="{{url_for('static', filename='images/layouts/side-bkg.png')}}" class="img-fluid"
+                            <div class="image"><img src="{{url_for('static', filename='images/layouts/worka.jpg')}}" class="img-fluid"
                                     alt="side-bkg"></div>
                             <h6 class="mt-4 px-4 body-title">Being curious...?</h6>
                             <a href="https://dunistech.ng" class="btn sidebar-bottom-btn mt-4">Go to weebsite</a>

@@ -8,196 +8,541 @@
     <div class="content-page">
         <div class="container-fluid">
 
-         <div class="row">
-            <div class="col-sm-12">
-                <div class="card">
-                <div class="card-header d-flex justify-content-between">
-                    <div class="header-title">
-                        <h4 class="card-title">User groups . Dunis Workforce</h4>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p> <code>(staffs . instructors . clients . student )</code></p>
-                    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link" id="pills-general-tab" data-toggle="pill" 
-                            href="#pills-general" role="tab" aria-controls="pills-general" 
-                            aria-selected="false">General</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" id="pills-staff-tab" data-toggle="pill" 
-                            href="#pills-staff" role="tab" aria-controls="pills-staff" 
-                            aria-selected="true">Staffs</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="pills-student-tab" data-toggle="pill" 
-                            href="#pills-student" role="tab" aria-controls="pills-student" 
-                            aria-selected="false">Student</a>
-                        </li>
-                    </ul>
-                    <div class="tab-content" id="pills-tabContent-2">
-                        <div class="tab-pane fade" id="pills-general" role="tabpanel" 
-                        aria-labelledby="pills-general-tab">
-                        
-                        <table id="user-list-table" class="table table-striped dataTable mt-4"
-                        role="grid" aria-describedby="user-list-page-info">
-                          <thead>
-                             <tr class="ligth">
-                                <th>Profile</th>
-                                <th>Name</th>
-                                <th>Contact</th>
-                                <th>Email</th>
-                                <th style="min-width: 100px">Action</th>
-                             </tr>
-                          </thead>
-                          <tbody>
-                             {% for user in users %}
-                             <tr>
-                                <td class="text-center">
-                                 <img class="rounded img-fluid avatar-40" 
-                                 src="{{url_for('static', filename='images/user/'~ user.photo|string or '1.png' )}}"
-                                 alt="{{user.name or user.username}}">
-                              </td>
-                                <td>{{user.name or user.username}}</td>
-                                <td>{{user.phone or "not provided"}}</td>
-                                <td>{{user.email or "not provided"}}</td>
-                                <td>
-                                    <div class="flex align-items-center list-user-action">
-                                        <a class="btn btn-sm bg-primary" data-toggle="tooltip" data-placement="top" title="" 
-                                        data-original-title="edit" href="{{ url_for('auth.update', username=user.username) }}">
-                                        <i class="ri-pencil-line mr-0"></i></a>
-                                        <button type="button" onclick="remove(this, '{{ user.username }}')" 
-                                        class="badge bg-warning mr-2 border-0" data-toggle="tooltip" data-placement="top" 
-                                        title="" data-original-title="Delete">
-                                         <i class="ri-delete-bin-line mr-0"></i>
-                                      </button>
-                                      <button type="button" data-user-id="{{user.id}}" data-action="impersonate"
-                                      class="badge bg-warning mr-2 border-0 impersonate" data-toggle="tooltip"
-                                      data-placement="top" title="impersonate" data-original-title="">
-                                      <i class="ri-user-line mr-0"></i> 
-                                  </button>
-
-                                    </div>
-                                </td>
-                             </tr>
-                             {% endfor %}
-                          </tbody>
-                       </table>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between">
+                            <div class="header-title">
+                                <h4 class="card-title">User groups or Categories . Dunis Workforce</h4>
+                            </div>
                         </div>
-                        <div class="tab-pane fade active show" id="pills-staff" role="tabpanel" aria-labelledby="pills-staff-tab">
-                           
-                           <table id="user-list-table" class="table table-striped dataTable mt-4"
-                           role="grid" aria-describedby="user-list-page-info">
-                             <thead>
-                                <tr class="ligth">
-                                   <th>Profile</th>
-                                   <th>Name</th>
-                                   <th>Contact</th>
-                                   <th>Email</th>
-                                   <th style="min-width: 100px">Action</th>
-                                </tr>
-                             </thead>
-                             <tbody>
-                              
-                              {% for user in users %}
-                              {% for role in user.roles %}
-                              {% if role.type|string == "staff"|string or role.type|string =="instructor" %}
-                                      <tr>
-                                          <td class="text-center">
-                                              <img class="rounded img-fluid avatar-40"
-                                                  src="{{ url_for('static', filename='images/user/'~(user.photo or '1.png') | string) }}"
-                                                  alt="{{ user.name or user.username }}">
-                                          </td>
-                                          <td>{{ user.name or user.username }}</td>
-                                          <td>{{ user.phone or "not provided" }}</td>
-                                          <td>{{ user.email or "not provided" }}</td>
-                                          <td>
-                                              <div class="flex align-items-center list-user-action">
-                                                  <a class="btn btn-sm bg-primary" data-toggle="tooltip" data-placement="top" title="" 
-                                                  data-original-title="edit" href="{{ url_for('auth.update', username=user.username) }}">
-                                                  <i class="ri-pencil-line mr-0"></i></a>
-                                                  <button type="button" onclick="remove(this, '{{ user.username }}')" 
-                                                  class="badge bg-warning mr-2 border-0" data-toggle="tooltip" data-placement="top" 
-                                                  title="" data-original-title="Delete">
-                                                   <i class="ri-delete-bin-line mr-0"></i>
-                                                </button>
-                                                <button type="button" data-user-id="{{user.id}}" data-action="impersonate"
-                                                class="badge bg-warning mr-2 border-0 impersonate" data-toggle="tooltip"
-                                                data-placement="top" title="" data-original-title="impersonate">
-                                                <i class="ri-user-line mr-0"></i> 
-                                            </button>
+                        <div class="card-body">
+                            <p> <code>(general . staffs . student . customers )</code></p>
+                            <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link" id="pills-general-tab" data-toggle="pill" href="#pills-general"
+                                        role="tab" aria-controls="pills-general" aria-selected="false">General</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="pills-staff-tab" data-toggle="pill"
+                                        href="#pills-staff" role="tab" aria-controls="pills-staff"
+                                        aria-selected="true">Staffs(Full-time)</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="pills-intern-staff-tab" data-toggle="pill"
+                                        href="#pills-intern-staff" role="tab" aria-controls="pills-intern-staff"
+                                        aria-selected="true">Intern Staffs</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="pills-intern-staff-tab" data-toggle="pill"
+                                        href="#pills-corper-staff" role="tab" aria-controls="pills-corper-staff"
+                                        aria-selected="true">Corper Staffs</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="pills-student-tab" data-toggle="pill" href="#pills-student"
+                                        role="tab" aria-controls="pills-student" aria-selected="false">Student</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="pills-customers-tab" data-toggle="pill"
+                                        href="#pills-customers" role="tab" aria-controls="pills-customers"
+                                        aria-selected="false">Customers</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="pills-tabContent-2">
+                               
+                                <div class="tab-pane fade" id="pills-general" role="tabpanel"
+                                    aria-labelledby="pills-general-tab">
 
-                                              </div>
-                                          </td>
-                                      </tr>
-                                  {% endif %}
-                              {% endfor %}
-                              {% endfor %}
-                          </tbody>
-                          </table>
-                        </div>
-                        <div class="tab-pane fade" id="pills-student" role="tabpanel" aria-labelledby="pills-student-tab">
-                           <table id="user-list-table" class="table table-striped dataTable mt-4" role="grid" aria-describedby="user-list-page-info">
-                              <thead>
-                                  <tr class="ligth">
-                                      <th>Profile</th>
-                                      <th>Name</th>
-                                      <th>Contact</th>
-                                      <th>Email</th>
-                                      <th style="min-width: 100px">Action</th>
-                                  </tr>
-                              </thead>
-                              <tbody>
-                                  {% for user in users %}
-                                  {% for role in user.roles %}
-                                       {% if role.type|string == "student"|string %}
-                                             <tr>
+                                    <table id="user-list-table" class="table table-striped dataTable mt-4" role="grid"
+                                        aria-describedby="user-list-page-info">
+                                        <thead>
+                                            <tr class="ligth">
+                                                <th>Profile</th>
+                                                <th>Name</th>
+                                                <th>Contact</th>
+                                                <th>Email</th>
+                                                <th style="min-width: 100px">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% if users %}
+                                            {% for user in users %}
+                                            <tr>
                                                 <td class="text-center">
-                                                   <img class="rounded img-fluid avatar-40"
-                                                         src="{{ url_for('static', filename='images/user/' ~ (user.photo or '1.png') | string) }}"
-                                                         alt="{{ user.name or user.username }}">
+                                                    <img class="rounded img-fluid avatar-40"
+                                                        src="{{user.photo or url_for('static', filename='images/logo/favicon.png' )}}"
+                                                        alt="{{ user.name or user.username }}">
                                                 </td>
-                                                <td>{{ user.name or user.username }}</td>
-                                                <td>{{ user.phone or "not provided" }}</td>
-                                                <td>{{ user.email or "not provided" }}</td>
+                                                <td>{{user.name or user.username}}</td>
+                                                <td>{{user.phone or "not provided"}}</td>
+                                                <td>{{user.email or "not provided"}}</td>
                                                 <td>
                                                     <div class="flex align-items-center list-user-action">
-                                                        <a class="btn btn-sm bg-primary" data-toggle="tooltip" data-placement="top" title="" 
-                                                        data-original-title="edit" href="{{ url_for('auth.update', username=user.username) }}">
-                                                        <i class="ri-pencil-line mr-0"></i></a>
-                                                        <button type="button" onclick="remove(this, '{{ user.username }}')" 
-                                                        class="badge bg-warning mr-2 border-0" data-toggle="tooltip" data-placement="top" 
-                                                        title="" data-original-title="Delete">
-                                                         <i class="ri-delete-bin-line mr-0"></i>
-                                                      </button>
-                                                      <button type="button" data-user-id="{{user.id}}" data-action="impersonate"
-                                                      class="badge bg-warning mr-2 border-0 impersonate" data-toggle="tooltip"
-                                                      data-placement="top" title="" data-original-title="impersonate">
-                                                      <i class="ri-user-line mr-0"></i> 
-                                                  </button>
-      
+                                                        <a class="btn btn-sm bg-primary" data-toggle="tooltip"
+                                                            data-placement="top" title="" data-original-title="edit"
+                                                            href="{{ url_for('auth.update', username=user.username) }}">
+                                                            <i class="ri-pencil-line mr-0"></i></a>
+                                                        <button type="button"
+                                                            onclick="remove(this, '{{ user.username }}')"
+                                                            class="badge bg-warning mr-2 border-0" data-toggle="tooltip"
+                                                            data-placement="top" title="" data-original-title="Delete">
+                                                            <i class="ri-delete-bin-line mr-0"></i>
+                                                        </button>
+                                                        <button type="button" data-user-id="{{user.id}}"
+                                                            data-action="impersonate"
+                                                            class="badge bg-warning mr-2 border-0 impersonate"
+                                                            data-toggle="tooltip" data-placement="top"
+                                                            title="impersonate" data-original-title="">
+                                                            <i class="ri-user-line mr-0"></i>
+                                                        </button>
+
                                                     </div>
                                                 </td>
-                                             </tr>
-                                       {% endif %}
-                                  {% endfor %}
-                                  {% endfor %}
-                              </tbody>
-                          </table>
-                          
-                          
+                                            </tr>
+                                            {% endfor %}
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="tab-pane fade active show" id="pills-staff" role="tabpanel"
+                                    aria-labelledby="pills-staff-tab">
+
+                                    <table id="user-list-table" class="table table-striped dataTable mt-4" role="grid"
+                                        aria-describedby="user-list-page-info">
+                                        <thead>
+                                            <tr class="ligth">
+                                                <th>Profile</th>
+                                                <th>Name</th>
+                                                <th>Contact</th>
+                                                <th>Email</th>
+                                                <th style="min-width: 100px">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                            {% if users %}
+                                            {% set staff = users | selectattr('category', 'equalto', 'staff') | list %}
+
+                                            {% if staff %}
+                                            {# If there are staffs, you can display them or take some other action #}
+                                            {% for user in users %}
+                                            {% if user.category == "staff" %}
+
+                                            <tr>
+                                                <td class="text-center">
+                                                    <img class="rounded img-fluid avatar-40"
+                                                        src="{{ user.photo or url_for('static', filename='images/logo/favicon.png' )}}"
+                                                        alt="{{ user.name or user.username }}">
+                                                </td>
+                                                <td>{{ user.name or user.username }}</td>
+                                                <td>{{ user.phone or 0 }}</td>
+                                                <td>{{ user.email or 0 }}</td>
+                                                <td>
+                                                    <div class="flex align-items-center list-user-action">
+                                                        <a class="btn btn-sm bg-primary" data-toggle="tooltip"
+                                                            data-placement="top" title="edit"
+                                                            href="{{ url_for('auth.update', username=user.username) }}">
+                                                            <i class="ri-pencil-line mr-0"></i>
+                                                        </a>
+                                                        <button type="button"
+                                                            onclick="remove(this, '{{ user.username }}')"
+                                                            class="badge bg-warning mr-2 border-0" data-toggle="tooltip"
+                                                            data-placement="top" title="Delete">
+                                                            <i class="ri-delete-bin-line mr-0"></i>
+                                                        </button>
+                                                        <button type="button" data-user-id="{{user.id}}"
+                                                            data-action="impersonate"
+                                                            class="badge bg-warning mr-2 border-0 impersonate"
+                                                            data-toggle="tooltip" data-placement="top"
+                                                            title="impersonate">
+                                                            <i class="ri-user-line mr-0"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            {% endif %}
+
+                                            {% endfor %}
+
+                                            {% else %}
+                                            <div class="card">
+                                                <div class="card-header d-flex justify-content-between">
+                                                    <div class="header-title">
+                                                        <h4 class="card-title">Staff only section</h4>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-warning">
+                                                        No users categorized under this section currently. When you
+                                                        categorize a user as a staff, they will appear here.
+                                                    </p>
+                                                    <a href="./users" class="btn mb-1 btn-outline-warning">
+                                                        Browse users now<span class="badge badge-danger ml-2">.</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+
+                                </div>
+
+                                <div class="tab-pane fade" id="pills-intern-staff" role="tabpanel"
+                                    aria-labelledby="pills-intern-staff-tab">
+                                    <table id="user-list-table" class="table table-striped dataTable mt-4" role="grid"
+                                        aria-describedby="user-list-page-info">
+                                        <thead>
+                                            <tr class="ligth">
+                                                <th>Profile</th>
+                                                <th>Name</th>
+                                                <th>Contact</th>
+                                                <th>Email</th>
+                                                <th style="min-width: 100px">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                            {% if users %}
+                                            {% set staff = users | selectattr('category', 'equalto', 'intern-staff') |
+                                            list %}
+
+                                            {% if staff %}
+                                            {# If there are staffs, you can display them or take some other action #}
+                                            {% for user in users %}
+                                            {% if user.category == "intern-staff" %}
+
+                                            <tr>
+                                                <td class="text-center">
+                                                    <img class="rounded img-fluid avatar-40"
+                                                        src="{{ user.photo or url_for('static', filename='images/logo/favicon.png') }}"
+                                                        alt="{{ user.name or user.username }}">
+                                                </td>
+                                                <td>{{ user.name or user.username }}</td>
+                                                <td>{{ user.phone or 0 }}</td>
+                                                <td>{{ user.email or 0 }}</td>
+                                                <td>
+                                                    <div class="flex align-items-center list-user-action">
+                                                        <a class="btn btn-sm bg-primary" data-toggle="tooltip"
+                                                            data-placement="top" title="edit"
+                                                            href="{{ url_for('auth.update', username=user.username) }}">
+                                                            <i class="ri-pencil-line mr-0"></i>
+                                                        </a>
+                                                        <button type="button"
+                                                            onclick="remove(this, '{{ user.username }}')"
+                                                            class="badge bg-warning mr-2 border-0" data-toggle="tooltip"
+                                                            data-placement="top" title="Delete">
+                                                            <i class="ri-delete-bin-line mr-0"></i>
+                                                        </button>
+                                                        <button type="button" data-user-id="{{user.id}}"
+                                                            data-action="impersonate"
+                                                            class="badge bg-warning mr-2 border-0 impersonate"
+                                                            data-toggle="tooltip" data-placement="top"
+                                                            title="impersonate">
+                                                            <i class="ri-user-line mr-0"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            {% endif %}
+
+                                            {% endfor %}
+
+                                            {% else %}
+                                            <div class="card">
+                                                <div class="card-header d-flex justify-content-between">
+                                                    <div class="header-title">
+                                                        <h4 class="card-title">Intern Staff only Here</h4>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-warning">
+                                                        No users categorized under this section currently. When you
+                                                        categorize a user as an intern staff, they will appear here.
+                                                    </p>
+                                                    <a href="./users" class="btn mb-1 btn-outline-warning">
+                                                        Browse users now<span class="badge badge-danger ml-2">.</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% endif %}
+
+                                        </tbody>
+                                    </table>
+
+                                </div>
+
+                                <div class="tab-pane fade" id="pills-corper-staff" role="tabpanel"
+                                    aria-labelledby="pills-corper-staff-tab">
+                                    <table id="user-list-table" class="table table-striped dataTable mt-4" role="grid"
+                                        aria-describedby="user-list-page-info">
+                                        <thead>
+                                            <tr class="ligth">
+                                                <th>Profile</th>
+                                                <th>Name</th>
+                                                <th>Contact</th>
+                                                <th>Email</th>
+                                                <th style="min-width: 100px">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                            {% if users %}
+                                            {% set staff = users | selectattr('category', 'equalto', 'corper-staff') |
+                                            list %}
+
+                                            {% if staff %}
+                                            {# If there are staffs, you can display them or take some other action #}
+                                            {% for user in users %}
+                                            {% if user.category == "corper-staff" %}
+
+                                            <tr>
+                                                <td class="text-center">
+                                                    <img class="rounded img-fluid avatar-40"
+                                                        src="{{ user.photo or url_for('static', filename='images/logo/favicon.png') }}"
+                                                        alt="{{ user.name or user.username }}">
+                                                </td>
+                                                <td>{{ user.name or user.username }}</td>
+                                                <td>{{ user.phone or 0 }}</td>
+                                                <td>{{ user.email or 0 }}</td>
+                                                <td>
+                                                    <div class="flex align-items-center list-user-action">
+                                                        <a class="btn btn-sm bg-primary" data-toggle="tooltip"
+                                                            data-placement="top" title="edit"
+                                                            href="{{ url_for('auth.update', username=user.username) }}">
+                                                            <i class="ri-pencil-line mr-0"></i>
+                                                        </a>
+                                                        <button type="button"
+                                                            onclick="remove(this, '{{ user.username }}')"
+                                                            class="badge bg-warning mr-2 border-0" data-toggle="tooltip"
+                                                            data-placement="top" title="Delete">
+                                                            <i class="ri-delete-bin-line mr-0"></i>
+                                                        </button>
+                                                        <button type="button" data-user-id="{{user.id}}"
+                                                            data-action="impersonate"
+                                                            class="badge bg-warning mr-2 border-0 impersonate"
+                                                            data-toggle="tooltip" data-placement="top"
+                                                            title="impersonate">
+                                                            <i class="ri-user-line mr-0"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            {% endif %}
+
+                                            {% endfor %}
+
+                                            {% else %}
+                                            <div class="card">
+                                                <div class="card-header d-flex justify-content-between">
+                                                    <div class="header-title">
+                                                        <h4 class="card-title">Intern Staff only Here</h4>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-warning">
+                                                        No users categorized under this section currently. When you
+                                                        categorize a user as an intern staff, they will appear here.
+                                                    </p>
+                                                    <a href="./users" class="btn mb-1 btn-outline-warning">
+                                                        Browse users now<span class="badge badge-danger ml-2">.</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% endif %}
+
+                                        </tbody>
+                                    </table>
+
+                                </div>
+
+                                <div class="tab-pane fade" id="pills-student" role="tabpanel"
+                                    aria-labelledby="pills-student-tab">
+                                    <table id="user-list-table" class="table table-striped dataTable mt-4" role="grid"
+                                        aria-describedby="user-list-page-info">
+                                        <thead>
+                                            <tr class="ligth">
+                                                <th>Profile</th>
+                                                <th>Name</th>
+                                                <th>Contact</th>
+                                                <th>Email</th>
+                                                <th style="min-width: 100px">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% if users %}
+                                            {% set student = users | selectattr('category', 'equalto', 'student') | list
+                                            %}
+
+                                            {% if student %}
+                                            {# If there are customers, you can display them or take some other action #}
+                                            {% for user in users %}
+                                            {% if user.category == "student" %}
+
+                                            <tr>
+                                                <td class="text-center">
+                                                    <img class="rounded img-fluid avatar-40"
+                                                        src="{{ user.photo or url_for('static', filename='images/logo/favicon.png') }}"
+                                                        alt="{{ user.name or user.username }}">
+                                                </td>
+                                                <td>{{ user.name or user.username }}</td>
+                                                <td>{{ user.phone or 0 }}</td>
+                                                <td>{{ user.email or 0 }}</td>
+                                                <td>
+                                                    <div class="flex align-items-center list-user-action">
+                                                        <a class="btn btn-sm bg-primary" data-toggle="tooltip"
+                                                            data-placement="top" title="edit"
+                                                            href="{{ url_for('auth.update', username=user.username) }}">
+                                                            <i class="ri-pencil-line mr-0"></i>
+                                                        </a>
+                                                        <button type="button"
+                                                            onclick="remove(this, '{{ user.username }}')"
+                                                            class="badge bg-warning mr-2 border-0" data-toggle="tooltip"
+                                                            data-placement="top" title="Delete">
+                                                            <i class="ri-delete-bin-line mr-0"></i>
+                                                        </button>
+                                                        <button type="button" data-user-id="{{user.id}}"
+                                                            data-action="impersonate"
+                                                            class="badge bg-warning mr-2 border-0 impersonate"
+                                                            data-toggle="tooltip" data-placement="top"
+                                                            title="impersonate">
+                                                            <i class="ri-user-line mr-0"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                            {% endfor %}
+
+                                            {% else %}
+                                            <div class="card">
+                                                <div class="card-header d-flex justify-content-between">
+                                                    <div class="header-title">
+                                                        <h4 class="card-title">Students only section</h4>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-warning">
+                                                        No users categorized under this section currently. When you
+                                                        categorize a user as a student, they will appear here.
+                                                    </p>
+                                                    <a href="./users" class="btn mb-1 btn-outline-warning">
+                                                        Browse users now<span class="badge badge-danger ml-2">.</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% endif %}
+
+                                        </tbody>
+                                    </table>
+
+                                </div>
+
+                                <div class="tab-pane fade" id="pills-customers" role="tabpanel"
+                                    aria-labelledby="pills-customers-tab">
+                                    <table id="user-list-table" class="table table-striped dataTable mt-4" role="grid"
+                                        aria-describedby="user-list-page-info">
+                                        <thead>
+                                            <tr class="ligth">
+                                                <th>Profile</th>
+                                                <th>Name</th>
+                                                <th>Contact</th>
+                                                <th>Email</th>
+                                                <th style="min-width: 100px">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                            {% if users %}
+                                            {% set customers = users | selectattr('category', 'equalto', 'customer') |
+                                            list %}
+
+                                            {% if customers %}
+                                            {# If there are customers, you can display them or take some other action #}
+                                            {% for user in users %}
+                                            {% if user.category == "customer" %}
+                                            {% set has_customer = True %}
+
+                                            <tr>
+                                                <td class="text-center">
+                                                    <img class="rounded img-fluid avatar-40"
+                                                        src="{{ user.photo or url_for('static', filename='images/logo/favicon.png') }}"
+                                                        alt="{{ user.name or user.username }}">
+                                                </td>
+                                                <td>{{ user.name or user.username }} {{has_customer}}</td>
+                                                <td>{{ user.phone or 0 }}</td>
+                                                <td>{{ user.email or 0 }}</td>
+                                                <td>
+                                                    <div class="flex align-items-center list-user-action">
+                                                        <a class="btn btn-sm bg-primary" data-toggle="tooltip"
+                                                            data-placement="top" title="edit"
+                                                            href="{{ url_for('auth.update', username=user.username) }}">
+                                                            <i class="ri-pencil-line mr-0"></i>
+                                                        </a>
+                                                        <button type="button"
+                                                            onclick="remove(this, '{{ user.username }}')"
+                                                            class="badge bg-warning mr-2 border-0" data-toggle="tooltip"
+                                                            data-placement="top" title="Delete">
+                                                            <i class="ri-delete-bin-line mr-0"></i>
+                                                        </button>
+                                                        <button type="button" data-user-id="{{user.id}}"
+                                                            data-action="impersonate"
+                                                            class="badge bg-warning mr-2 border-0 impersonate"
+                                                            data-toggle="tooltip" data-placement="top"
+                                                            title="impersonate">
+                                                            <i class="ri-user-line mr-0"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                            {% endfor %}
+
+                                            {% else %}
+                                            <div class="card">
+                                                <div class="card-header d-flex justify-content-between">
+                                                    <div class="header-title">
+                                                        <h4 class="card-title">Customers only section</h4>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-warning">
+                                                        No users categorized under this section currently. When you
+                                                        categorize a user as a customer, they will appear here.
+                                                    </p>
+                                                    <a href="./users" class="btn mb-1 btn-outline-warning">
+                                                        Browse users now<span class="badge badge-danger ml-2">.</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% endif %}
+
+
+                                        </tbody>
+                                    </table>
+
+
+                                </div>
+
+                            </div>
                         </div>
                     </div>
                 </div>
-                </div>
-            </div>
             </div>
         </div>
 
-        </div>
-      </div>
-    <!-- Modal Edit -->
-    {% include 'incs/modal.html' %}
+    </div>
+</div>
+<!-- Modal Edit -->
+{% include 'incs/modal.html' %}
 </div>
 
 {% endblock content %}
@@ -210,7 +555,7 @@
 
         remove = (del_btn, username) => {
 
-         //alert('del clicked')
+            //alert('del clicked')
             _confirm = confirm('This User Will Be Deleted/Removed, Are You U Really Wanna Do This ?')
 
             if (!_confirm) { return } //true/false
@@ -232,7 +577,7 @@
             });
 
             jqxhr.done((r) => {
-
+                return console.log(r);
                 $(del_btn).closest('tr').remove()
                 $(del_btn).html(del_btnhtml); //reset spinning submit-btn
                 if ('undefined' != typeof (r.response)) {
@@ -256,7 +601,7 @@
         }
 
     });
-    
+
 </script>
 
 {% endblock page_js %}

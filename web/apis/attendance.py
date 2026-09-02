@@ -1,15 +1,18 @@
-
+# web/apis/attendance.py
 from flask_login import current_user, login_required
+from sqlalchemy.orm import joinedload
 from datetime import date, datetime, timedelta
-from flask import stream_template, Blueprint, request, jsonify
-from flask_login import current_user, login_required
+from flask import stream_template, Blueprint, request, jsonify, current_app
 from sqlalchemy import func
 import traceback
-from web.models import (
-    Attendance, User, Attendance
+from web.models.attendance import (
+    Attendance
 )
+from web.models.users import User
 
-from web import db, csrf
+from web.models import db
+from web import csrf
+from web.utils.decorators import role_required
 from web.utils.user_role import has_role
 
 def handle_response(message=None, alert=None, data=None):
@@ -25,10 +28,10 @@ def handle_response(message=None, alert=None, data=None):
 
     return response_data
 
-attendance_bp = Blueprint('attendance_api', __name__)
+attendance_bp_old = Blueprint('attendance_api_old', __name__)
 
 
-@attendance_bp.route('/create_attendance', methods=['POST'])
+@attendance_bp_old.route('/create_attendance', methods=['POST'])
 @csrf.exempt
 @login_required
 def attendance():
@@ -42,7 +45,7 @@ def attendance():
         
         user_id = data.get('user_id', current_user.id)
         action = data.get('action')
-        today = data.get('today', datetime.utcnow() )
+        today = data.get('today', datetime.now() )
         comment = data.get('comment', None )
         #print(action == 'signin')
         user = User.query.get(user_id)
@@ -93,11 +96,12 @@ def attendance():
         return jsonify({"message": "Invalid action"}), 400
 
     except Exception as ex:
+        current_app.logger.exception(f"Unhandled error in web/apis/attendance.py: {ex}")
         print(traceback.print_exc())
         print(ex)
         return jsonify({"message": f"{ex}"})
     
-@attendance_bp.route('/total_attendance', methods=['GET'])
+@attendance_bp_old.route('/total_attendance', methods=['GET'])
 @login_required
 def total_attendance():
     """ Evaluating total monthly attendance for the month """
@@ -125,7 +129,7 @@ def total_attendance():
 
     return jsonify({"total_attendance": total_attendance}), 200
 
-@attendance_bp.route('/attendance_status', methods=['GET'])
+@attendance_bp_old.route('/attendance_status', methods=['GET'])
 @login_required
 def get_status():
     
@@ -156,8 +160,9 @@ def get_status():
 
 
 # fetch/get attendances
-@attendance_bp.route('/fetch_attendance_one', methods=['GET'])
+@attendance_bp_old.route('/fetch_attendance_one', methods=['GET'])
 @login_required
+@role_required('hr', 'analysis', 'admin', 'dev', 'md')
 @csrf.exempt
 def fetch_attendance_one():
     try:
@@ -169,42 +174,63 @@ def fetch_attendance_one():
             attendance_list.append({
                 'id': attendance.id, 
                 'sign_in_time': attendance.sign_in_time.strftime('%d %b %Y %H:%M:%S'),
-                'sign_out_time': attendance.sign_out_time.strftime('%d %b %Y %H:%M:%S') if attendance.sign_out_time else 'N/A'
+                'sign_out_time': attendance.sign_out_time.strftime('%d %b %Y %H:%M:%S') if attendance.sign_out_time else 0
             })
         print(attendance_list)
         return jsonify({"attendances": attendance_list}), 200
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/apis/attendance.py: {e}")
         return jsonify({"success": False, "error": f"{e}"}), 200
 
 # fetch/get all attendances
-@attendance_bp.route('/fetch_attendance_all', methods=['GET'])
+# @attendance_bp_old.route('/fetch-attendance-all') 
+@attendance_bp_old.route('/fetch-attendance-all', methods=['GET'])
 @login_required
+@role_required('hr', 'analysis', 'admin', 'dev', 'md')
 @csrf.exempt
 def fetch_attendance_all():
     try:
         # attendances = Attendance.query.order_by(Attendance.sign_in_time.desc()).all()
         # Exclude deleted records (assuming there's an 'is_deleted' boolean field)
-        attendances = Attendance.query.filter_by(deleted=False).order_by(Attendance.sign_in_time.desc()).all()
+        # attendances = Attendance.query.filter_by(deleted=False).order_by(Attendance.sign_in_time.desc()).all()
+        
+        from sqlalchemy.orm import joinedload
+        attendances = (
+            Attendance.query
+            .options(joinedload(Attendance.user))  # Efficiently loads user data
+            .filter(Attendance.deleted == False)
+            .filter(Attendance.user != None)  # Exclude those with no user
+            .order_by(Attendance.sign_in_time.desc())
+            .all()
+        )
+
         attendance_list = []
+
+        # 
         for attendance in attendances:
+            user = attendance.user
+            if not user:
+                continue  # Skip records with no linked user
             attendance_list.append({
                 'id': attendance.id,
                 'user_id': attendance.user_id,
-                'user_info': attendance.user.name,
-                'username': attendance.user.username,  # Assuming there is a relationship to fetch the username
+                'user_info': user.name,
+                'username': user.username,
                 'sign_in_time': attendance.sign_in_time.strftime('%I:%M %p'), 
-                'sign_out_time': attendance.sign_out_time.strftime('%I:%M %p') if attendance.sign_out_time else 'N/A',
-                # 'date': attendance.timestamp.strftime('%d %b %Y %H:%M:%S') 
-                'date': attendance.timestamp.strftime('%a, %b %d'),  # Date in the format: fri, Jun 21
+                'sign_out_time': attendance.sign_out_time.strftime('%I:%M %p') if attendance.sign_out_time else 0,
+                'date': attendance.timestamp.strftime('%a, %b %d'),
             })
+        # 
         # print(attendance_list)
         return jsonify({"attendances": attendance_list}), 200
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/apis/attendance.py: {e}")
+        traceback.print_exc()
         return jsonify({"success": False, "error": f"{e}"})
 
 
 # updating
-@attendance_bp.route('/update_attendance/<int:task_id>', methods=['PUT'])
+@attendance_bp_old.route('/update_attendance/<int:task_id>', methods=['PUT'])
 @login_required
 @csrf.exempt
 def update_assigned_task(task_id):
@@ -221,10 +247,11 @@ def update_assigned_task(task_id):
         db.session.commit()
         return jsonify({"success": True, "message":"Assigned Task updated successfully"}), 200
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/apis/attendance.py: {e}")
         return jsonify({"success": False, "error":f"{e}"}), 200
 
 # Deletion of attendance
-@attendance_bp.route('/delete-attendance/<int:attendance_id>', methods=['DELETE'])
+@attendance_bp_old.route('/delete-attendance/<int:attendance_id>', methods=['DELETE'])
 @login_required
 @csrf.exempt
 def delete_attendance(attendance_id):
@@ -235,7 +262,7 @@ def delete_attendance(attendance_id):
             return jsonify({"success": False, "error": "Attendance not found"})
         
         # Check if the user is either the owner of the attendance or has the 'admin' role
-        if attendance.user_id != current_user.id and not has_role(current_user, ['admin', 'hr', 'md', 'dev']):
+        if attendance.user_id != current_user.id and not has_role(current_user, ['admin', 'hr', 'md', 'dev', 'md']):
             return jsonify({"success": False, "error": f"Permission denied. You can't delete {attendance.user.name}'s attendance."})
 
         # Delete the attendance record
@@ -245,18 +272,19 @@ def delete_attendance(attendance_id):
         return jsonify({"success": True, "message": "Attendance deleted successfully"}), 200
 
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/apis/attendance.py: {e}")
         db.session.rollback()  # Rollback the session in case of an error
         return jsonify({"success": False, "error": f"{e}"})
 
 
 # Deletion of all attendance records
-@attendance_bp.route('/delete-all-attendance', methods=['DELETE'])
+@attendance_bp_old.route('/delete-all-attendance', methods=['DELETE'])
 @login_required
 @csrf.exempt
 def delete_all_attendance():
     try:
         # Check if the user is an admin
-        if not has_role(current_user, ['admin', 'hr', 'md', 'dev']):
+        if not has_role(current_user, ['admin', 'hr', 'md', 'dev', 'md']):
             return jsonify({"success": False, "error": "Permission denied. You can't delete all attendance records"})
 
         # Delete all attendance records
@@ -266,10 +294,11 @@ def delete_all_attendance():
         return jsonify({"success": True, "message": "All attendance records deleted successfully"}), 200
 
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/apis/attendance.py: {e}")
         db.session.rollback()  # Rollback in case of an error
         return jsonify({"success": False, "error": f"{e}"}), 500
 
-@attendance_bp.route('/delete-attendance_0/<int:attendance_id>', methods=['DELETE'])
+@attendance_bp_old.route('/delete-attendance_0/<int:attendance_id>', methods=['DELETE'])
 @login_required
 @csrf.exempt
 def delete_attendance_0(attendance_id):
@@ -286,6 +315,7 @@ def delete_attendance_0(attendance_id):
         return jsonify({"success": True, "message":"Attendance deleted successfully"}), 200
     
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/apis/attendance.py: {e}")
         return jsonify({"success": False, "error":f"{e}"}), 200
 
 
@@ -296,13 +326,22 @@ from datetime import datetime
 # from your_model_file import Attendance  # Assuming the model and relationships are in place
 
 # Download attendance records as CSV
-@attendance_bp.route('/download_csv-attendance', methods=['GET'])
+@attendance_bp_old.route('/download_csv-attendance', methods=['GET'])
 @login_required
 @csrf.exempt
 def download_csv_attendance():
     try:
         # Fetch attendance records, excluding deleted ones
-        attendances = Attendance.query.filter_by(deleted=False).order_by(Attendance.sign_in_time.desc()).all()
+        # attendances = Attendance.query.filter_by(deleted=False).order_by(Attendance.sign_in_time.desc()).all()
+        # from sqlalchemy.orm import joinedload
+        attendances = (
+            Attendance.query
+            .options(joinedload(Attendance.user))  # Efficiently loads user data
+            .filter(Attendance.deleted == False)
+            .filter(Attendance.user != None)  # Exclude those with no user
+            .order_by(Attendance.sign_in_time.desc())
+            .all()
+        )
 
         # Create CSV in memory
         si = StringIO()
@@ -313,13 +352,16 @@ def download_csv_attendance():
 
         # Write attendance data
         for i, attendance in enumerate(attendances, 1):
+            if not attendance.user:
+                continue  # Skip records with no linked user
+
             cw.writerow([
                 i,  # Serial number
                 attendance.user_id,
                 attendance.user.username,  
                 attendance.user.name,
                 attendance.sign_in_time.strftime('%I:%M %p'),
-                attendance.sign_out_time.strftime('%I:%M %p') if attendance.sign_out_time else 'N/A',
+                attendance.sign_out_time.strftime('%I:%M %p') if attendance.sign_out_time else 0,
                 attendance.timestamp.strftime('%a, %b %d')
             ])
 
@@ -335,5 +377,122 @@ def download_csv_attendance():
                         headers={"Content-Disposition": f"attachment;filename=attendance_records_{current_datetime}.csv"})
 
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/apis/attendance.py: {e}")
         return jsonify({"success": False, "error": f"{e}"}), 500
+
+
+# Download attendance records as CSV(STAFFS ONLY)
+@attendance_bp_old.route('/download-attendance-csv/<string:category>', methods=['GET'])
+@login_required
+@csrf.exempt
+def download_csv_attendances(category):
+    try:
+        # Fetch attendance records, excluding deleted ones, defaulting to all
+        # category = "general" if not category else None
+        # attendances = None
+        if category:
+            if category == "general":
+                attendances = Attendance.query.filter_by(deleted=False).order_by(Attendance.sign_in_time.desc()).all()
+            
+            # elif category == "students":
+            #     # Query staff attendance data
+            #     attendances = db.session.query(
+            #         Attendance.id, Attendance.user_id, User.name, User.category, 
+            #         Attendance.timestamp, Attendance.status, 
+            #         Attendance.sign_in_time, Attendance.sign_out_time, Attendance.comment,
+            #         Attendance.created, Attendance.updated
+            #     ).join(User, Attendance.user_id == User.id).filter(
+            #         User.category.in_(['students', 'student']),
+            #         Attendance.deleted == False
+            #     ).order_by(Attendance.timestamp.desc()).all()
+
+            # elif category == "customers":
+            #     attendances = db.session.query(
+            #         Attendance.id, Attendance.user_id, User.name, User.category, 
+            #         Attendance.timestamp, Attendance.status, 
+            #         Attendance.sign_in_time, Attendance.sign_out_time, Attendance.comment,
+            #         Attendance.created, Attendance.updated
+            #     ).join(User, Attendance.user_id == User.id).filter(
+            #         User.category.in_(['customer', 'customers']),
+            #         Attendance.deleted == False
+            #     ).order_by(Attendance.timestamp.desc()).all()
+            elif category == "students":
+                attendances = Attendance.query.options(
+                    joinedload(Attendance.user)
+                ).join(User).filter(
+                    User.category.in_(['students', 'student']),
+                    Attendance.deleted == False
+                ).order_by(Attendance.timestamp.desc()).all()
+
+            elif category == "customers":
+                attendances = Attendance.query.options(
+                    joinedload(Attendance.user)
+                ).join(User).filter(
+                    User.category.in_(['customer', 'customers']),
+                    Attendance.deleted == False
+                ).order_by(Attendance.timestamp.desc()).all()
+
+            elif category == "staffs":                
+                # Query staff attendance data
+                # attendances = db.session.query(
+                #     Attendance.id, Attendance.user_id, User.name, User.category, 
+                #     Attendance.timestamp, Attendance.status, 
+                #     Attendance.sign_in_time, Attendance.sign_out_time, Attendance.comment,
+                #     Attendance.created, Attendance.updated
+                # ).join(User, Attendance.user_id == User.id).filter(
+                #     User.category.in_(['staff', 'intern-staff', 'corper-staff']),
+                #     Attendance.deleted == False
+                # ).order_by(Attendance.timestamp.desc()).all()
+
+
+                attendances = Attendance.query.options(
+                    joinedload(Attendance.user)
+                ).join(User).filter(
+                    User.category.in_(['staff', 'intern-staff', 'corper-staff']),
+                    Attendance.deleted == False
+                ).order_by(Attendance.timestamp.desc()).all()
+
+            else:
+                attendances = []
+
+        # Create CSV in memory
+        si = StringIO()
+        cw = csv.writer(si)
+
+        # Write headers to CSV
+        cw.writerow(['S/N', 'User ID', 'Username', 'Name', 'Sign-in Time', 'Sign-out Time', 'Date'])
+
+        # Write attendance data
+        for i, attendance in enumerate(attendances, 1):
+            print("ATTENDANCE", attendance)
+            if not attendance.user:
+                continue  # Skip records with no linked user
+
+            cw.writerow([
+                i,  # Serial number
+                attendance.user_id,
+                attendance.user.username,  
+                attendance.user.name,
+                attendance.sign_in_time.strftime('%I:%M %p'),
+                attendance.sign_out_time.strftime('%I:%M %p') if attendance.sign_out_time else 0,
+                attendance.timestamp.strftime('%a, %b %d')
+            ])
+
+        # Get CSV data as a string
+        output = si.getvalue()
+        si.close()
+
+        # Get current date and time to include in the filename
+        current_datetime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+        # Return CSV response with dynamically generated filename
+        return Response(
+            output, 
+            mimetype="text/csv",
+            headers={"Content-Disposition": f"attachment;filename=attendance_records_{current_datetime}.csv"})
+
+    except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/apis/attendance.py: {e}")
+        traceback.print_exc()
+        return jsonify({"success": False, "error": f"{ e}"}), 500
 

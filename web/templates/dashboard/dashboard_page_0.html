@@ -1,0 +1,735 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — Workforce{% endblock title %}
+
+{% block head_extra %}
+<!-- Chart.js via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ── Dashboard-specific overrides ─────────────────── */
+.kpi-card        { transition:transform .15s,box-shadow .2s; }
+.kpi-card:hover  { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.09); }
+.kpi-icon-wrap   { width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0; }
+.kpi-val         { font-size:1.8rem;font-weight:800;line-height:1; }
+.kpi-label       { font-size:.75rem;color:#64748b;margin-top:.2rem; }
+.kpi-change      { font-size:.72rem;margin-top:.25rem; }
+
+/* Leaderboard */
+.lb-row          { display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid #f1f5f9; }
+.lb-row:last-child { border-bottom:none; }
+.lb-rank         { width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0; }
+.lb-rank.r1      { background:#fef9c3;color:#92400e; }
+.lb-rank.r2      { background:#f1f5f9;color:#475569; }
+.lb-rank.r3      { background:#fef3c7;color:#78350f; }
+.lb-rank.rn      { background:#f8fafc;color:#94a3b8; }
+.lb-av           { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.64rem;font-weight:700;overflow:hidden;flex-shrink:0;background:#eff6ff;color:#2563eb; }
+.lb-av img       { width:100%;height:100%;object-fit:cover; }
+.lb-name         { font-size:.84rem;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.lb-score        { font-size:.82rem;font-weight:700;color:#2563eb;font-family:monospace;flex-shrink:0; }
+.lb-label        { font-size:.65rem;padding:2px 7px;border-radius:99px;white-space:nowrap; }
+.lb-top          { background:#d1fae5;color:#065f46; }
+.lb-high         { background:#dbeafe;color:#1d4ed8; }
+.lb-ok           { background:#fef3c7;color:#92400e; }
+.lb-attention    { background:#fee2e2;color:#991b1b; }
+.lb-risk         { background:#fee2e2;color:#b91c1c; }
+
+/* Score bar */
+.score-bar-wrap  { flex:1;background:#f1f5f9;border-radius:99px;height:5px;overflow:hidden;min-width:40px; }
+.score-bar-fill  { height:100%;border-radius:99px;background:linear-gradient(90deg,#2563eb,#7c3aed);transition:width .5s; }
+
+/* Att week dots */
+.att-week-row    { display:flex;gap:.4rem;flex-wrap:wrap; }
+.att-dot         { width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700; }
+.att-dot.present { background:#d1fae5;color:#065f46; }
+.att-dot.absent  { background:#f1f5f9;color:#94a3b8; }
+
+/* Overdue list */
+.overdue-row     { display:flex;align-items:flex-start;gap:.6rem;padding:.5rem 0;border-bottom:1px solid #f1f5f9;font-size:.82rem; }
+.overdue-row:last-child { border-bottom:none; }
+.overdue-pri     { width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0; }
+
+/* Chart containers */
+.chart-wrap      { position:relative;height:200px; }
+.chart-wrap-sm   { position:relative;height:160px; }
+
+/* Section heading */
+.s-head-row      { display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;flex-wrap:wrap;gap:.5rem; }
+.s-head-row h5   { font-size:.92rem;font-weight:700;margin:0; }
+
+/* Shimmer */
+.shimmer         { background:linear-gradient(90deg,#e2e8f0 25%,#f8fafc 50%,#e2e8f0 75%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:8px; }
+@keyframes sh    { to{background-position:-200% 0} }
+
+@media(max-width:576px) {
+  .kpi-val { font-size:1.4rem; }
+  .lb-score,.score-bar-wrap { display:none; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    {% include 'incs/sidenav.html' %}
+    {% include 'incs/topnav.html' %}
+
+    <div class="content-page">
+        <div class="container-fluid">
+
+            <!-- ── Greeting row ──────────────────────────────────── -->
+            <div class="row mb-4">
+                <div class="col-lg-5">
+                    <div class="card card-transparent card-block card-stretch card-height border-none">
+                        <div class="card-body p-0 mt-lg-2 mt-0">
+                            <h3 class="mb-2" id="greet">Hi {{ current_user.name or current_user.username }},</h3>
+                            <p class="mb-0 text-muted" style="font-size:.875rem">
+                                Here's your workforce snapshot for today.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="row">
+                        <!-- ID Card -->
+                        <div class="col-4">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body d-flex flex-column justify-content-between">
+                                    <b class="mb-2" style="font-size:.85rem"><i class="ri-id-card-line mr-1 text-primary"></i>ID Card</b>
+                                    <button type="button" class="btn btn-secondary btn-sm rounded-pill" onclick="openCurrentUserIDCard()">
+                                        View Card
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Attendance -->
+                        <div class="col-4">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body d-flex flex-column justify-content-between">
+                                    <div>
+                                        <b style="font-size:.85rem">
+                                            <i class="ri-calendar-check-line mr-1 text-success"></i>Attendance
+                                        </b>
+                                        <span id="totalAttendance" class="badge badge-warning ml-1">…</span>
+                                    </div>
+                                    <div>
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="customSwitch8">
+                                            <label class="custom-control-label" for="customSwitch8"></label>
+                                        </div>
+                                        <p id="attendance-text" class="mb-0 text-muted" style="font-size:.75rem">Clock in/out</p>
+                                    </div>
+                                </div>
+                                <div id="message" class="mt-1 px-3"></div>
+                            </div>
+                        </div>
+                        <!-- My Role -->
+                        <div class="col-4">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body d-flex flex-column justify-content-between">
+                                    <b style="font-size:.85rem"><i class="ri-briefcase-line mr-1 text-warning"></i>My Role</b>
+                                    <a href="{{ url_for('roles_views.my_role_page') }}" class="btn btn-secondary btn-sm rounded-pill">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── KPI Cards ─────────────────────────────────────── -->
+            <div class="row mb-4" id="kpiRow">
+                <!-- Populated by JS -->
+                {% for _ in range(4) %}
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="card card-block card-stretch kpi-card">
+                        <div class="card-body"><div class="shimmer" style="height:72px"></div></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- ── Charts row ─────────────────────────────────────── -->
+            <div class="row mb-4">
+
+                <!-- Attendance Trend (30 days) -->
+                <div class="col-lg-8 mb-4 mb-lg-0">
+                    <div class="card card-block card-stretch h-100">
+                        <div class="card-header">
+                            <div class="s-head-row">
+                                <h5><i class="ri-bar-chart-2-line mr-2 text-primary"></i>Attendance Trend</h5>
+                                <select id="trendDays" class="custom-select custom-select-sm" style="width:120px">
+                                    <option value="7">Last 7 days</option>
+                                    <option value="14">Last 14 days</option>
+                                    <option value="30" selected>Last 30 days</option>
+                                    <option value="90">Last 90 days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-wrap"><canvas id="attChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Status Donut -->
+                <div class="col-lg-4">
+                    <div class="card card-block card-stretch h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0" style="font-size:.92rem;font-weight:700">
+                                <i class="ri-pie-chart-2-line mr-2 text-warning"></i>Task Status
+                            </h5>
+                        </div>
+                        <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                            <div class="chart-wrap-sm" style="width:100%"><canvas id="taskChart"></canvas></div>
+                            <div id="taskLegend" class="mt-2 w-100"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ── Projects + Leaderboard (admin) / Personal stats (staff) ── -->
+            <div class="row mb-4">
+
+                <!-- Projects completion -->
+                <div class="col-lg-5 mb-4 mb-lg-0">
+                    <div class="card card-block card-stretch h-100">
+                        <div class="card-header">
+                            <div class="s-head-row">
+                                <h5><i class="ri-kanban-view mr-2 text-success"></i>Projects</h5>
+                                <a href="/projects" class="btn btn-sm btn-outline-primary py-0">View All</a>
+                            </div>
+                        </div>
+                        <div class="card-body" id="projectsPanel">
+                            <div class="shimmer" style="height:160px"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin: Leaderboard | Staff: personal attendance week -->
+                <div class="col-lg-7">
+                    <div class="card card-block card-stretch h-100">
+                        <div class="card-header">
+                            <div class="s-head-row">
+                                <h5 id="rightPanelTitle">
+                                    <i class="ri-trophy-line mr-2 text-warning"></i>Performance Leaderboard
+                                </h5>
+                                <div class="d-flex align-items-center" style="gap:.4rem" id="rightPanelControls"></div>
+                            </div>
+                        </div>
+                        <div class="card-body" id="rightPanel">
+                            <div class="shimmer" style="height:160px"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ── Overdue Tasks + Activity ──────────────────────── -->
+            <div class="row mb-4">
+
+                <!-- Overdue tasks -->
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <div class="card card-block card-stretch h-100">
+                        <div class="card-header">
+                            <div class="s-head-row">
+                                <h5><i class="ri-alarm-warning-line mr-2 text-danger"></i>Overdue Tasks</h5>
+                                <a href="/projects" class="btn btn-sm btn-outline-danger py-0">View Tasks</a>
+                            </div>
+                        </div>
+                        <div class="card-body" id="overduePanel">
+                            <div class="shimmer" style="height:120px"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project status donut -->
+                <div class="col-lg-6">
+                    <div class="card card-block card-stretch h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0" style="font-size:.92rem;font-weight:700">
+                                <i class="ri-pie-chart-line mr-2 text-primary"></i>Project Status
+                            </h5>
+                        </div>
+                        <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                            <div class="chart-wrap-sm" style="width:100%"><canvas id="projChart"></canvas></div>
+                            <div id="projLegend" class="mt-2 w-100"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div><!-- /container-fluid -->
+    </div><!-- /content-page -->
+</div><!-- /wrapper -->
+
+{% include 'incs/response_modal.html' %}
+{% include 'incs/idcard_modal.html' %}
+{% include 'incs/attendance_modal.html' %}
+{% endblock content %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/libs/html2canvas.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/libs/jspdf.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/html2pdf.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+
+<script>
+/* ── Chart instances ────────────────────────────── */
+let attChartInst  = null;
+let taskChartInst = null;
+let projChartInst = null;
+
+/* ── Colours ────────────────────────────────────── */
+const STATUS_COLORS = {
+    'pending':   '#6366f1',
+    'on-going':  '#3b82f6',
+    'stucked':   '#f59e0b',
+    'completed': '#22c55e',
+    'cancelled': '#ef4444',
+    'active':    '#22c55e',
+    'planning':  '#818cf8',
+    'on-hold':   '#f59e0b',
+};
+const PRI_COLORS = { low:'#22c55e', medium:'#f59e0b', high:'#ef4444', urgent:'#7c3aed', critical:'#7c3aed' };
+const LABEL_CLASSES = {
+    'Top Performer':'lb-top','High Performer':'lb-high',
+    'On Track':'lb-ok','Needs Attention':'lb-attention','At Risk':'lb-risk',
+};
+
+/* ── Boot ───────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+    greet();
+    loadOverview();
+    loadAttTrend(30);
+    loadTasks();
+    loadProjects();
+    loadRightPanel();
+
+    document.getElementById('trendDays').addEventListener('change', function() {
+        loadAttTrend(parseInt(this.value));
+    });
+
+    // Attendance widget (existing logic preserved)
+    checkStatus();
+    getTotalAttendance();
+    document.getElementById('customSwitch8').addEventListener('change', function() {
+        handleAttendance(this.checked);
+    });
+});
+
+/* ── Greeting ───────────────────────────────────── */
+function greet() {
+    const h = new Date().getHours();
+    const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    const el = document.getElementById('greet');
+    if (el) el.textContent = `${g}, {{ current_user.name or current_user.username }}!`;
+}
+
+/* ── KPI overview ───────────────────────────────── */
+async function loadOverview() {
+    try {
+        const d = await apiFetch('/api/dashboard/overview');
+
+        const isAdmin = d.is_admin;
+        const cards = [];
+
+        if (isAdmin) {
+            cards.push({ icon:'ri-group-line',       bg:'#eff6ff', fg:'#2563eb', val:d.total_staff    ?? 0, label:'Total Staff' });
+            cards.push({ icon:'ri-checkbox-circle-line', bg:'#d1fae5', fg:'#059669', val:d.attendance_today ?? 0, label:'Present Today' });
+            cards.push({ icon:'ri-kanban-view',       bg:'#fef3c7', fg:'#d97706', val:d.projects_active ?? 0, label:'Active Projects' });
+            cards.push({ icon:'ri-alarm-warning-line',bg:'#fee2e2', fg:'#dc2626', val:d.tasks_overdue  ?? 0, label:'Overdue Tasks' });
+        } else {
+            cards.push({ icon:'ri-calendar-check-line', bg:'#d1fae5', fg:'#059669', val:d.attendance_week ?? 0, label:'Days This Week' });
+            cards.push({ icon:'ri-task-line',         bg:'#eff6ff', fg:'#2563eb', val:d.tasks_total    ?? 0, label:'My Tasks' });
+            cards.push({ icon:'ri-checkbox-circle-line', bg:'#fef3c7', fg:'#d97706', val:d.tasks_completed ?? 0, label:'Completed' });
+            cards.push({ icon:'ri-alarm-warning-line',bg:'#fee2e2', fg:'#dc2626', val:d.tasks_overdue  ?? 0, label:'Overdue' });
+        }
+
+        document.getElementById('kpiRow').innerHTML = cards.map(c => `
+            <div class="col-6 col-md-3 mb-3">
+                <div class="card card-block card-stretch kpi-card">
+                    <div class="card-body d-flex align-items-center" style="gap:1rem">
+                        <div class="kpi-icon-wrap" style="background:${c.bg};color:${c.fg}">
+                            <i class="${c.icon}"></i>
+                        </div>
+                        <div>
+                            <div class="kpi-val">${c.val}</div>
+                            <div class="kpi-label">${c.label}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>`).join('');
+    } catch(e) { console.warn('overview', e); }
+}
+
+/* ── Attendance trend bar chart ─────────────────── */
+async function loadAttTrend(days) {
+    try {
+        const d = await apiFetch(`/api/dashboard/attendance?days=${days}`);
+        const series = d.series || [];
+
+        const labels = series.map(s => s.label || s.date);
+        const values = series.map(s => s.count);
+
+        if (attChartInst) attChartInst.destroy();
+        const ctx = document.getElementById('attChart').getContext('2d');
+        attChartInst = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Attendance',
+                    data: values,
+                    backgroundColor: 'rgba(37,99,235,.7)',
+                    borderColor:     '#2563eb',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero:true, ticks:{ precision:0, font:{size:10} }, grid:{color:'#f1f5f9'} },
+                    x: { ticks:{ font:{size:10}, maxRotation:45 }, grid:{ display:false } }
+                }
+            }
+        });
+    } catch(e) { console.warn('att trend', e); }
+}
+
+/* ── Task donut chart ───────────────────────────── */
+async function loadTasks() {
+    try {
+        const d = await apiFetch('/api/dashboard/tasks');
+        const by_status = d.by_status || [];
+        const labels    = by_status.map(s => s.status);
+        const values    = by_status.map(s => s.count);
+        const colors    = labels.map(l => STATUS_COLORS[l] || '#94a3b8');
+
+        if (taskChartInst) taskChartInst.destroy();
+        const ctx = document.getElementById('taskChart').getContext('2d');
+        taskChartInst = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels, datasets: [{ data:values, backgroundColor:colors, borderWidth:2, borderColor:'#fff' }] },
+            options: {
+                responsive:true, maintainAspectRatio:false, cutout:'65%',
+                plugins:{legend:{display:false}}
+            }
+        });
+
+        // Custom legend
+        document.getElementById('taskLegend').innerHTML =
+            labels.map((l,i) =>
+                `<span class="d-inline-flex align-items-center mr-2 mb-1" style="font-size:.72rem">
+                    <span style="width:8px;height:8px;border-radius:50%;background:${colors[i]};display:inline-block;margin-right:4px"></span>
+                    ${l} (${values[i]})
+                 </span>`
+            ).join('');
+
+        // Overdue list
+        renderOverdue(d.overdue || []);
+    } catch(e) { console.warn('tasks', e); }
+}
+
+function renderOverdue(overdue) {
+    const el = document.getElementById('overduePanel');
+    if (!overdue.length) {
+        el.innerHTML = `<div class="text-center py-4">
+            <i class="ri-checkbox-circle-line" style="font-size:2rem;color:#22c55e"></i>
+            <p class="mt-2 mb-0 text-muted" style="font-size:.84rem">No overdue tasks. </p>
+        </div>`;
+        return;
+    }
+    el.innerHTML = overdue.map(t => `
+        <div class="overdue-row">
+            <span class="overdue-pri" style="background:${PRI_COLORS[t.priority]||'#94a3b8'}"></span>
+            <div style="flex:1;min-width:0">
+                <div style="font-size:.83rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                    ${esc(t.description)}
+                </div>
+                <div style="font-size:.72rem;color:#94a3b8">
+                    <i class="ri-calendar-line mr-1"></i>Due ${t.due_date || '—'}
+                    ${t.assigned_to ? ' · ' + esc(t.assigned_to.name) : ''}
+                </div>
+            </div>
+            ${t.weight ? `<span class="badge badge-light mr-1" style="font-size:.62rem" title="Task weight">w${t.weight}</span>` : ''}
+            <span class="badge badge-soft-danger" style="font-size:.65rem">${esc(t.priority)}</span>
+        </div>`).join('');
+}
+
+/* ── Projects panel ─────────────────────────────── */
+async function loadProjects() {
+    try {
+        const d = await apiFetch('/api/dashboard/projects');
+        const projects = (d.projects || []).slice(-8).reverse(); // top 8 by completion
+
+        // Status donut
+        const by_status = d.by_status || [];
+        const sl = by_status.map(s => s.status);
+        const sv = by_status.map(s => s.count);
+        const sc = sl.map(l => STATUS_COLORS[l] || '#94a3b8');
+
+        if (projChartInst) projChartInst.destroy();
+        const ctx = document.getElementById('projChart').getContext('2d');
+        projChartInst = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels:sl, datasets:[{data:sv,backgroundColor:sc,borderWidth:2,borderColor:'#fff'}] },
+            options: {
+                responsive:true, maintainAspectRatio:false, cutout:'65%',
+                plugins:{legend:{display:false}}
+            }
+        });
+        document.getElementById('projLegend').innerHTML =
+            sl.map((l,i) =>
+                `<span class="d-inline-flex align-items-center mr-2 mb-1" style="font-size:.72rem">
+                    <span style="width:8px;height:8px;border-radius:50%;background:${sc[i]};display:inline-block;margin-right:4px"></span>
+                    ${l} (${sv[i]})
+                 </span>`
+            ).join('');
+
+        // Project progress list
+        const panel = document.getElementById('projectsPanel');
+        if (!projects.length) {
+            panel.innerHTML = `<p class="text-muted text-center py-3" style="font-size:.84rem">No projects yet.</p>`;
+            return;
+        }
+        panel.innerHTML = projects.map(p => `
+            <div class="mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <a href="/projects/${p.id}/board" style="font-size:.82rem;font-weight:600;color:inherit;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%">
+                        ${esc(p.title)}
+                    </a>
+                    <span style="font-size:.72rem;color:#64748b;white-space:nowrap">${p.progress}%</span>
+                </div>
+                <div style="height:5px;background:#f1f5f9;border-radius:99px;overflow:hidden">
+                    <div style="width:${p.progress}%;height:100%;background:${p.color};border-radius:99px;transition:width .4s"></div>
+                </div>
+            </div>`).join('');
+    } catch(e) { console.warn('projects', e); }
+}
+
+/* ── Right panel: leaderboard (admin) or personal stats (staff) ── */
+async function loadRightPanel() {
+    const panel     = document.getElementById('rightPanel');
+    const title     = document.getElementById('rightPanelTitle');
+    const controls  = document.getElementById('rightPanelControls');
+
+    try {
+        // Try admin leaderboard first
+        const resp = await fetch('/api/dashboard/leaderboard?days=30');
+        if (resp.status === 403) {
+            // Staff personal view
+            loadPersonalStats(panel, title, controls);
+            return;
+        }
+        const d = await resp.json();
+        if (!resp.ok) throw new Error(d.error || resp.statusText);
+
+        title.innerHTML = '<i class="ri-trophy-line mr-2 text-warning"></i>Performance Leaderboard';
+        controls.innerHTML = `
+            <select id="lbDays" class="custom-select custom-select-sm" style="width:110px">
+                <option value="7">7 days</option>
+                <option value="30" selected>30 days</option>
+                <option value="90">90 days</option>
+            </select>
+            <a href="/attendance" class="btn btn-sm btn-outline-secondary py-0">
+                <i class="ri-calendar-check-line mr-1"></i>Attendance
+            </a>`;
+
+        renderLeaderboard(d.leaderboard || [], panel, d.leaderboard?.[0]?.score || 1);
+
+        document.getElementById('lbDays').addEventListener('change', async function() {
+            const d2 = await apiFetch(`/api/dashboard/leaderboard?days=${this.value}`);
+            renderLeaderboard(d2.leaderboard || [], panel, d2.leaderboard?.[0]?.score || 1);
+        });
+
+    } catch(e) { console.warn('right panel', e); loadPersonalStats(panel, title, controls); }
+}
+
+function renderLeaderboard(board, panel, maxScore) {
+    if (!board.length) {
+        panel.innerHTML = '<p class="text-muted text-center py-3" style="font-size:.84rem">No data yet.</p>';
+        return;
+    }
+    panel.innerHTML = board.slice(0, 10).map((b, i) => {
+        const rankClass = i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+        const lClass = LABEL_CLASSES[b.label] || 'lb-ok';
+        const barPct = maxScore > 0 ? Math.round(b.score / maxScore * 100) : 0;
+        const ini = initials(b.name);
+        const av  = b.photo
+            ? `<div class="lb-av"><img src="/static/images/user/${b.photo}"></div>`
+            : `<div class="lb-av">${ini}</div>`;
+        return `
+            <div class="lb-row">
+                <div class="lb-rank ${rankClass}">${b.rank}</div>
+                ${av}
+                <div class="lb-name">${esc(b.name)}</div>
+                <div class="score-bar-wrap">
+                    <div class="score-bar-fill" style="width:${barPct}%"></div>
+                </div>
+                <div class="d-flex flex-column align-items-end ml-2" style="gap:.2rem">
+                    <span class="lb-score">${b.score}pts</span>
+                    <span class="lb-label ${lClass}">${b.label}</span>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+async function loadPersonalStats(panel, title, controls) {
+    try {
+        title.innerHTML = '<i class="ri-user-star-line mr-2 text-primary"></i>My Performance';
+        controls.innerHTML = `<a href="/attendance" class="btn btn-sm btn-outline-secondary py-0"><i class="ri-calendar-check-line mr-1"></i>Attendance</a>`;
+
+        const d = await apiFetch('/api/dashboard/my-stats?days=30');
+
+        const attWeek = d.att_week || [];
+        const weekDots = attWeek.map(w =>
+            `<div class="att-dot ${w.present?'present':'absent'}" title="${w.date}">${w.day||w.date.slice(5)}</div>`
+        ).join('');
+
+        panel.innerHTML = `
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <div style="font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em">Attendance (30d)</div>
+                    <div style="font-size:1.5rem;font-weight:800;color:#059669">${d.att_days ?? 0} days</div>
+                    <div style="font-size:.72rem;color:#94a3b8">${d.att_rate ?? 0}% rate</div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div style="font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em">Task Completion</div>
+                    <div style="font-size:1.5rem;font-weight:800;color:#2563eb">${d.task_completion_rate ?? 0}%</div>
+                    <div style="font-size:.72rem;color:#94a3b8">${d.tasks_completed ?? 0}/${d.tasks_total ?? 0} tasks · ${d.weighted_completed ?? 0}/${d.weighted_total ?? 0}u weighted</div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div style="font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em">Projects</div>
+                    <div style="font-size:1.5rem;font-weight:800;color:#d97706">${d.project_count ?? 0}</div>
+                    <div style="font-size:.72rem;color:#94a3b8">Active memberships</div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div style="font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em">Overdue</div>
+                    <div style="font-size:1.5rem;font-weight:800;color:#dc2626">${d.tasks_overdue ?? 0}</div>
+                    <div style="font-size:.72rem;color:#94a3b8">tasks past due · ${d.weighted_overdue ?? 0}u weighted</div>
+                </div>
+            </div>
+
+            <!-- Weighted workload bar — additive, doesn't touch anything above -->
+            <div class="mt-1 mb-3">
+                <div class="d-flex align-items-center justify-content-between" style="font-size:.7rem;color:#64748b;margin-bottom:.25rem">
+                    <span>Workload: ${d.weighted_total ?? 0}u total</span>
+                    <span>${d.weighted_completion_rate ?? 0}% weighted-complete</span>
+                </div>
+                <div style="display:flex;height:6px;border-radius:99px;overflow:hidden;background:#f1f5f9">
+                    <div style="width:${pct(d.weighted_pending, d.weighted_total)}%;background:#6366f1" title="Pending ${d.weighted_pending ?? 0}u"></div>
+                    <div style="width:${pct(d.weighted_ongoing, d.weighted_total)}%;background:#3b82f6" title="On-going ${d.weighted_ongoing ?? 0}u"></div>
+                    <div style="width:${pct(d.weighted_completed, d.weighted_total)}%;background:#22c55e" title="Completed ${d.weighted_completed ?? 0}u"></div>
+                </div>
+            </div>
+
+            <div style="font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">This Week</div>
+            <div class="att-week-row">${weekDots}</div>`;
+    } catch(e) { panel.innerHTML = '<p class="text-muted text-center py-3" style="font-size:.84rem">Could not load stats.</p>'; }
+}
+
+function pct(part, total) {
+    return total ? Math.round((part || 0) / total * 100) : 0;
+}
+
+/* ── Attendance widget helpers (preserved from original) ── */
+function checkStatus() {
+    fetch('/attendance_status')
+        .then(r => r.json())
+        .then(data => {
+            const sw   = document.getElementById('customSwitch8');
+            const txt  = document.getElementById('attendance-text');
+            if (data.status === 'signed_in') {
+                sw.checked   = true;
+                txt.textContent = 'Switch to clock out';
+            } else {
+                sw.checked   = false;
+                txt.textContent = 'Switch to clock in';
+            }
+        }).catch(e => console.error(e));
+}
+
+function handleAttendance(isSigningIn) {
+    fetch('/create_attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: isSigningIn ? 'signin' : 'signout' })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (typeof showMessage === 'function') showMessage(data.message, 'success');
+    })
+    .catch(e => console.error(e));
+}
+
+function getTotalAttendance() {
+    fetch('/total_attendance')
+        .then(r => r.json())
+        .then(data => {
+            const el = document.getElementById('totalAttendance');
+            if (el) el.textContent = (data.total_attendance ?? 0) + ' days';
+        }).catch(e => console.error(e));
+}
+
+/* ── ID Card (preserved) ──────────────────────────── */
+function loadUserIdCard(userId) {
+    $.ajax({
+        url: `/user/${userId}/id-details`, type: 'GET',
+        success: function(data) {
+            if (!data.success) return;
+            const user = data.user;
+            const photoPath = `/static/images/user/${user.photo || '1.png'}`;
+            const logoPath  = user.category === 'student'
+                ? '/static/images/logo/dunistech_academy.png'
+                : '/static/images/logo/dunistech_logo.png';
+            $('#user-photo').attr('src', photoPath);
+            $('#id-logo').attr('src', logoPath);
+            $('#user-name').text(user.name);
+            $('#user-email strong').text('Email');   $('#user-email small').text(user.email);
+            $('#user-phone strong').text('Phone');   $('#user-phone small').text(user.phone);
+            if (['user','staff','intern-staff','corper-staff'].includes(user.category)) {
+                $('#user-id-label strong').text('Staff ID'); $('#user-id-label small').text(user.reg_num);
+                $('#user-role strong').text('Designation');  $('#user-role small').text(user.designation);
+                $('#user-category strong').text('Category'); $('#user-category small').text(user.category);
+            } else if (user.category === 'student') {
+                $('#user-id-label strong').text('Registration'); $('#user-id-label small').text(user.reg_num);
+                $('#user-role strong').text('Course');  $('#user-role small').text(user.course || 'N/A');
+                user.batch ? ($('#user-batch').show(), $('#user-batch strong').text('Batch'), $('#user-batch small').text(user.batch)) : $('#user-batch').hide();
+                $('#user-category strong').text('Category'); $('#user-category small').text('Student');
+            }
+            if (user.category !== 'student') $('#user-batch').hide();
+        }
+    });
+}
+
+$(document).ready(function() {
+    loadUserIdCard({{ current_user.id }});
+});
+
+$('#download-id-card').on('click', function() {
+    const $this = $(this);
+    $this.html('<i class="fa fa-circle-notch fa-spin fa-1x fa-fw"></i>');
+    html2canvas(document.querySelector('.id-card')).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({ orientation:'portrait', unit:'px', format:[canvas.width, canvas.height] });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('id_card.pdf');
+        $this.html('Download');
+    }).catch(e => { console.error(e); $this.html('Download ID Card'); });
+});
+
+/* ── Utils ──────────────────────────────────────── */
+async function apiFetch(url) {
+    const r = await fetch(url);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || r.statusText);
+    return d;
+}
+function initials(n) { return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'; }
+function esc(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+{% endblock page_js %}

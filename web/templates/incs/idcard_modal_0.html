@@ -1,0 +1,786 @@
+<style>
+  /* ID Card Modal Styles */
+  .id-card-modal .modal-dialog {
+    max-width: 420px;
+    margin: 1.75rem auto;
+  }
+
+  .id-card-modal .modal-content {
+    border: none;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+  }
+
+  .id-card-modal .modal-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white;
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+  }
+
+  .id-card-modal .modal-header .modal-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .id-card-modal .modal-header .close {
+    color: white;
+    text-shadow: none;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+
+  .id-card-modal .modal-header .close:hover {
+    opacity: 1;
+  }
+
+  .id-card-modal .modal-body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem;
+  }
+
+  .id-card-modal .modal-footer {
+    background: white;
+    border-top: 1px solid #e9ecef;
+    padding: 0.75rem 1.5rem;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  /* ID Card Styles - Clean & Professional */
+  .id-card {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+
+  .id-card:hover {
+    transform: translateY(-5px);
+  }
+
+  /* Card Header */
+  .id-card-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+    padding: 1.25rem 1rem;
+    text-align: center;
+    position: relative;
+  }
+
+  .company-name {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin: 0;
+    color: #ffffff;
+    text-transform: uppercase;
+  }
+
+  .company-name i {
+    font-size: 1.1rem;
+    margin-right: 6px;
+  }
+
+  .company-tagline {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin-top: 5px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Card Type Badge */
+  .card-type-badge {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: white;
+    backdrop-filter: blur(4px);
+  }
+
+  /* Card Body */
+  .id-card-body {
+    padding: 1.5rem 1.25rem 1.25rem;
+  }
+
+  /* Photo Section */
+  .photo-section {
+    text-align: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .user-photo-wrapper {
+    display: inline-block;
+    position: relative;
+  }
+
+  .user-photo-img {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #f39c12;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    background: #f8f9fa;
+  }
+
+  /* User Name */
+  .user-name-section {
+    text-align: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .user-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 5px 0;
+  }
+
+  .user-name small {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #f39c12;
+  }
+
+  /* Info Grid - Clean Two Column Layout */
+  .info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .info-icon {
+    width: 28px;
+    height: 28px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .info-icon i {
+    font-size: 14px;
+    color: #f39c12;
+  }
+
+  .info-content {
+    flex: 1;
+  }
+
+  .info-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .info-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2c3e50;
+    word-break: break-word;
+  }
+
+  /* Role Badge */
+  .role-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  /* Card Footer */
+  .id-card-footer {
+    background: #f8f9fa;
+    padding: 0.75rem 1.25rem;
+    text-align: center;
+    border-top: 1px solid #e9ecef;
+  }
+
+  .validity-text {
+    font-size: 0.6rem;
+    color: #6c757d;
+    margin: 0;
+  }
+
+  .validity-text i {
+    margin-right: 4px;
+  }
+
+  /* Watermark Logo */
+  .watermark-logo {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    opacity: 0.08;
+    pointer-events: none;
+  }
+
+  .watermark-logo img {
+    width: 80px;
+    height: auto;
+  }
+
+  /* Print Button */
+  .btn-print-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .btn-print-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    color: white;
+  }
+
+  /* Responsive */
+  @media (max-width: 576px) {
+    .id-card-modal .modal-dialog {
+      margin: 0.5rem;
+      max-width: calc(100% - 1rem);
+    }
+    
+    .id-card-modal .modal-body {
+      padding: 1rem;
+    }
+    
+    .id-card {
+      max-width: 100%;
+    }
+    
+    .user-photo-img {
+      width: 90px;
+      height: 90px;
+    }
+    
+    .user-name {
+      font-size: 1rem;
+    }
+    
+    .info-value {
+      font-size: 0.8rem;
+    }
+  }
+
+  /* Print Styles - Clean & Professional */
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    
+    .id-card-print-container,
+    .id-card-print-container * {
+      visibility: visible;
+    }
+    
+    .id-card-print-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: white;
+    }
+    
+    .id-card {
+      box-shadow: none;
+      border: 1px solid #ddd;
+      margin: 0 auto;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    
+    .btn-print-card,
+    .modal-header,
+    .modal-footer,
+    .modal-backdrop {
+      display: none !important;
+    }
+  }
+</style>
+
+<!-- ID Card Modal -->
+<div class="modal fade id-card-modal" id="idcard_modal" tabindex="-1" aria-labelledby="idCardModalScrollableTitle" aria-hidden="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="idCardModalScrollableTitle">
+          <i class="ri-id-card-line mr-2"></i>Employee Identification Card
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- ID Card -->
+        <div class="id-card" id="employee-id-card">
+          <div class="id-card-header">
+            <div class="card-type-badge">
+              <i class="ri-shield-star-line"></i> STAFF ID
+            </div>
+            <h3 class="company-name">
+              <img src="{{ url_for('static', filename='images/logo/dunistech.png') }}" style="width: 100px; height: auto;" alt="Company Logo" class="company-logo">
+              DUNIS TECH LTD
+            </h3>
+            <div class="company-tagline">Technology & Innovation | Est. 2015</div>
+          </div>
+          
+          <div class="id-card-body">
+            <!-- Photo -->
+            <div class="photo-section">
+              <div class="user-photo-wrapper">
+                <img id="user-photo" 
+                  src="{{ current_user.photo or url_for('static', filename='images/logo/favicon.png') }}"
+                  alt="Employee Photo" 
+                  class="user-photo-img"
+                  onerror="this.src='{{ url_for('static', filename='images/logo/favicon.png') }}'">
+              </div>
+            </div>
+            
+            <!-- Name -->
+            <div class="user-name-section">
+              <div class="user-name">
+                {{ current_user.name or current_user.username or 'Staff Member' }}
+                <small><i class="ri-verified-badge-line"></i></small>
+              </div>
+            </div>
+            
+            <!-- Information Grid -->
+            <div class="info-grid">
+              <!-- Staff ID -->
+              <div class="info-row">
+                <div class="info-icon">
+                  <i class="ri-id-card-line"></i>
+                </div>
+                <div class="info-content">
+                  <div class="info-label">Staff Identification Number</div>
+                  <div class="info-value" id="user-id-value">
+                    {{ current_user.staff_id or current_user.id or 'DTS-' ~ '%04d'|format(current_user.id|default(1)) }}
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Job Role -->
+              <div class="info-row">
+                <div class="info-icon">
+                  <i class="ri-briefcase-line"></i>
+                </div>
+                <div class="info-content">
+                  <div class="info-label">Designation / Role</div>
+                  <div class="info-value">
+                    <span id="user-role-value" class="role-badge">{{ current_user.roles[0].name or current_user.role or 'Staff Member' }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Department -->
+              <div class="info-row">
+                <div class="info-icon">
+                  <i class="ri-group-line"></i>
+                </div>
+                <div class="info-content">
+                  <div class="info-label">Department / Unit</div>
+                  <div class="info-value" id="user-category-value">
+                    {{ current_user.department or current_user.category or 'Operations' }}
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Batch / Join Info -->
+              <div class="info-row">
+                <div class="info-icon">
+                  <i class="ri-calendar-line"></i>
+                </div>
+                <div class="info-content">
+                  <div class="info-label">Batch / Year of Joining</div>
+                  <div class="info-value" id="user-batch-value">
+                    {{ current_user.batch or current_user.created.strftime('%Y') or '2024' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Footer -->
+          <div class="id-card-footer">
+            <p class="validity-text">
+              <i class="ri-checkbox-circle-line"></i> Valid until December 31, 2025
+              <span style="margin: 0 5px">•</span>
+              <i class="ri-qr-code-line"></i> Authorized Personnel
+            </p>
+          </div>
+          
+          <!-- Watermark -->
+          <div class="watermark-logo">
+            <img id="id-logo" 
+              src="{{ url_for('static', filename='images/logo/dunistech_academy.png') }}"
+              alt="Logo"
+              onerror="this.style.display='none'">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+          <i class="ri-close-line mr-1"></i> Close
+        </button>
+        <button type="button" class="btn-print-card btn-sm" onclick="printIDCard()">
+          <i class="ri-printer-line mr-1"></i> Download / Print
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Function to update ID card with user data
+  function updateIDCard(userData) {
+    if (!userData) return;
+    
+    // Update name
+    const nameEl = document.querySelector('#employee-id-card .user-name');
+    if (nameEl && userData.full_name) {
+      nameEl.childNodes[0].textContent = userData.full_name;
+    }
+    
+    // Update staff ID
+    const idEl = document.getElementById('user-id-value');
+    if (idEl) {
+      idEl.textContent = userData.staff_id || userData.employee_id || 
+        (userData.id ? 'DTS-' + String(userData.id).padStart(4, '0') : 'DTS-0001');
+    }
+    
+    // Update role
+    const roleEl = document.getElementById('user-role-value');
+    if (roleEl) {
+      roleEl.textContent = userData.job_role || userData.role || userData.position || 'Staff Member';
+    }
+    
+    // Update department
+    const deptEl = document.getElementById('user-category-value');
+    if (deptEl) {
+      deptEl.textContent = userData.department || userData.category || 'Operations';
+    }
+    
+    // Update batch
+    const batchEl = document.getElementById('user-batch-value');
+    if (batchEl) {
+      batchEl.textContent = userData.batch || userData.join_year || 
+        (userData.created_at ? new Date(userData.created_at).getFullYear() : '2024');
+    }
+    
+    // Update photo
+    const photoEl = document.getElementById('user-photo');
+    if (userData.photo && photoEl) {
+      photoEl.src = userData.photo;
+    }
+  }
+  
+  // Professional Print Function - Clean layout
+  function printIDCard() {
+    // Get the ID card element
+    const cardElement = document.getElementById('employee-id-card');
+    const cardHTML = cardElement.outerHTML;
+    
+    // Get user name for document title
+    const userName = document.querySelector('#employee-id-card .user-name')?.childNodes[0]?.textContent || 'Staff Member';
+    
+    // Create print window
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>ID Card - ${userName} | Dunis Tech LTD</title>
+        <meta charset="UTF-8">
+        <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+        <style>
+          /* Reset & Base */
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: #e9ecef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+          }
+          
+          /* ID Card Container */
+          .id-card-print-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+          }
+          
+          /* ID Card Styles - Exact same as modal */
+          .id-card {
+            width: 360px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            position: relative;
+          }
+          
+          .id-card-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+            padding: 1.25rem 1rem;
+            text-align: center;
+            position: relative;
+          }
+          
+          .company-name {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin: 0;
+            color: #ffffff;
+            text-transform: uppercase;
+          }
+          
+          .company-name i {
+            font-size: 1.1rem;
+            margin-right: 6px;
+          }
+          
+          .company-tagline {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.75);
+            margin-top: 5px;
+          }
+          
+          .card-type-badge {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: white;
+          }
+          
+          .id-card-body {
+            padding: 1.5rem 1.25rem 1.25rem;
+          }
+          
+          .photo-section {
+            text-align: center;
+            margin-bottom: 1.25rem;
+          }
+          
+          .user-photo-wrapper {
+            display: inline-block;
+            position: relative;
+          }
+          
+          .user-photo-img {
+            width: 110px;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid #f39c12;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+          }
+          
+          .user-name-section {
+            text-align: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f0f0f0;
+          }
+          
+          .user-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin: 0;
+          }
+          
+          .user-name small {
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: #f39c12;
+          }
+          
+          .info-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+          }
+          
+          .info-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+          }
+          
+          .info-icon {
+            width: 28px;
+            height: 28px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+          
+          .info-icon i {
+            font-size: 14px;
+            color: #f39c12;
+          }
+          
+          .info-content {
+            flex: 1;
+          }
+          
+          .info-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+          }
+          
+          .info-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #2c3e50;
+          }
+          
+          .role-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+          }
+          
+          .id-card-footer {
+            background: #f8f9fa;
+            padding: 0.75rem 1.25rem;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+          }
+          
+          .validity-text {
+            font-size: 0.6rem;
+            color: #6c757d;
+            margin: 0;
+          }
+          
+          .watermark-logo {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            opacity: 0.08;
+          }
+          
+          .watermark-logo img {
+            width: 80px;
+            height: auto;
+          }
+          
+          /* Print-specific adjustments */
+          @media print {
+            body {
+              background: white;
+              padding: 0;
+              margin: 0;
+            }
+            .id-card {
+              box-shadow: none;
+              border: 1px solid #ddd;
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="id-card-print-wrapper">
+          ${cardHTML}
+        </div>
+        <script>
+          // Auto-trigger print when window loads
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 1000);
+            }, 200);
+          }
+        <\/script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
+  
+  // Initialize
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle image loading errors
+    const images = document.querySelectorAll('#user-photo, #id-logo');
+    images.forEach(img => {
+      img.addEventListener('error', function() {
+        if (this.id === 'user-photo') {
+          this.src = "{{ url_for('static', filename='images/logo/favicon.png') }}";
+        } else if (this.id === 'id-logo') {
+          this.style.display = 'none';
+        }
+      });
+    });
+  });
+  
+  // Expose globally
+  window.updateIDCard = updateIDCard;
+  window.printIDCard = printIDCard;
+</script>

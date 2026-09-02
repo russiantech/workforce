@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+{% block title %}My Role — Workforce{% endblock %}
+
+{% block head_extra %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ff:'Plus Jakarta Sans',system-ui,sans-serif;
+  --mono:'Plus Jakarta Sans', monospace;
+  --bg: #f4f6fb;--surface: #fff;--border: #e3e8f0;
+  --text: #111827;--muted: #64748b;--subtle: #94a3b8;
+  --primary: #4f46e5;--primary-lt: #eff6ff;
+  --radius:16px;--radius-sm:10px;--radius-xs:7px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 6px 24px rgba(0,0,0,.05);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.1);
+  --accent: #4f46e5;--accent-lt: #eff6ff;--accent-d: #1d4ed8;
+}
+body{background:var(--bg);font-family:var(--ff);color:var(--text);margin:0}
+
+/* ── TOPBAR ─────────────────────────── */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:60px;display:flex;align-items:center;gap:.65rem;position:sticky;top:0;z-index:200}
+.btn-nav{height:32px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;font-size:.78rem;display:inline-flex;align-items:center;gap:.3rem;padding:0 .75rem;font-family:var(--ff);font-weight:500;text-decoration:none;transition:border-color .15s,color .15s}
+.btn-nav:hover{border-color:var(--accent);color:var(--accent);text-decoration:none}
+.topbar-title{font-size:.95rem;font-weight:600;flex:1}
+
+/* ── LAYOUT ──────────────────────────── */
+.page{max-width:1120px;margin:0 auto;padding:1.75rem 1.5rem;display:grid;grid-template-columns:300px 1fr;gap:1.5rem;align-items:start}
+@media(max-width:860px){.page{grid-template-columns:1fr;padding:1.25rem 1rem}}
+
+/* ── IDENTITY CARD ───────────────────── */
+.id-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);position:sticky;top:80px}
+.id-banner{height:76px;
+  /* background:linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%,#000)); */
+  background:linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%,#000))
+}
+.id-av-wrap{position:absolute;bottom:-34px;left:1.25rem}
+.id-av{width:68px;height:68px;border-radius:50%;border:3px solid var(--surface);background:var(--accent-lt);color:var(--accent);font-size:1.35rem;font-weight:700;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.id-av img{width:100%;height:100%;object-fit:cover}
+.id-body{padding:2.75rem 1.25rem 1.5rem;position:relative}
+.id-name{font-size:1.05rem;font-weight:700;margin-bottom:.2rem}
+.id-role{font-size:.84rem;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:.4rem;margin-bottom:.35rem}
+.id-dept{font-size:.76rem;color:var(--muted);display:flex;align-items:center;gap:.3rem;margin-bottom:.5rem}
+.sys-role-chip{display:inline-flex;align-items:center;gap:.3rem;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:99px;font-family:var(--mono);margin-bottom:.45rem;margin-right:.3rem}
+.id-since{font-size:.71rem;color:var(--subtle);display:flex;align-items:center;gap:.3rem}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:1rem}
+.stat-box{background:var(--bg);border-radius:var(--radius-sm);padding:.65rem .75rem;text-align:center}
+.stat-val{font-size:1.3rem;font-weight:800;color:var(--accent);font-family:var(--mono);line-height:1}
+.stat-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:.2rem}
+
+/* ── MAIN CONTENT ────────────────────── */
+.main{display:flex;flex-direction:column;gap:1.1rem}
+
+/* Section card */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);animation:fadeUp .35s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.section:nth-child(1){animation-delay:.04s}.section:nth-child(2){animation-delay:.09s}.section:nth-child(3){animation-delay:.14s}
+.section:nth-child(4){animation-delay:.19s}.section:nth-child(5){animation-delay:.24s}.section:nth-child(6){animation-delay:.29s}
+
+.s-head{padding:.85rem 1.35rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem}
+.s-icon{width:32px;height:32px;border-radius:9px;background:var(--accent-lt);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.88rem;flex-shrink:0}
+.s-title{font-size:.88rem;font-weight:700;flex:1}
+.s-count{font-size:.68rem;font-family:var(--mono);background:var(--bg);color:var(--muted);padding:2px 7px;border-radius:99px}
+.s-body{padding:1.2rem 1.35rem}
+
+/* Description */
+.desc-text{font-size:.86rem;line-height:1.75;color:var(--muted)}
+
+/* Duties */
+.duty-row{display:flex;align-items:flex-start;gap:.8rem;padding:.65rem 0;border-bottom:1px solid var(--border)}
+.duty-row:last-child{border-bottom:none;padding-bottom:0}
+.duty-num{width:26px;height:26px;border-radius:8px;background:var(--accent-lt);color:var(--accent);font-size:.66rem;font-weight:700;font-family:var(--mono);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.duty-text{font-size:.85rem;line-height:1.55}
+
+/* KPIs */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.7rem}
+.kpi-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.8rem .9rem;display:flex;align-items:flex-start;gap:.55rem;transition:border-color .15s,box-shadow .15s}
+.kpi-card:hover{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-lt)}
+.kpi-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px}
+.kpi-text{font-size:.8rem;font-weight:500;line-height:1.5}
+.kpi-hint{font-size:.72rem;color:var(--muted);margin-top:.2rem}
+
+/* Requirements */
+.req-row{display:flex;align-items:center;gap:.65rem;background:var(--accent-lt);border-radius:var(--radius-sm);padding:.55rem .9rem;font-size:.83rem;margin-bottom:.4rem}
+.req-row:last-child{margin-bottom:0}
+
+/* Colleagues */
+.colleague-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.7rem}
+.colleague-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.8rem;display:flex;flex-direction:column;align-items:center;text-align:center;gap:.4rem;transition:box-shadow .15s}
+.colleague-card:hover{box-shadow:var(--shadow)}
+.c-av{width:40px;height:40px;border-radius:50%;background:var(--accent-lt);color:var(--accent);font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.c-av img{width:100%;height:100%;object-fit:cover}
+.c-name{font-size:.78rem;font-weight:600}
+.c-role{font-size:.7rem;color:var(--muted)}
+
+/* Tasks */
+.task-row{display:flex;align-items:center;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--border);font-size:.84rem}
+.task-row:last-child{border-bottom:none;padding-bottom:0}
+.task-pri{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.task-desc{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-due{font-size:.72rem;color:var(--muted);white-space:nowrap}
+.task-status{font-size:.68rem;font-weight:600;padding:2px 7px;border-radius:99px;white-space:nowrap}
+.ts-pending{background: #e0e7ff;color: #3730a3}
+.ts-in-progress{background: #dbeafe;color: #1d4ed8}
+.ts-done{background: #d1fae5;color: #065f46}
+.ts-cancelled{background: #fee2e2;color: #991b1b}
+.ts-on-going{background: #dbeafe;color: #1d4ed8}
+.ts-stucked{background: #fef3c7;color: #92400e}
+.ts-completed{background: #d1fae5;color: #065f46}
+/* Temp task specific */
+.tt-row{display:flex;align-items:flex-start;gap:.8rem;padding:.75rem 0;border-bottom:1px solid var(--border)}
+.tt-row:last-child{border-bottom:none;padding-bottom:0}
+.tt-stripe{width:4px;border-radius:4px;align-self:stretch;flex-shrink:0;min-height:40px}
+.tt-body{flex:1;min-width:0}
+.tt-title{font-size:.86rem;font-weight:600;margin-bottom:.2rem}
+.tt-detail{font-size:.77rem;color:var(--muted);line-height:1.5;margin-bottom:.35rem}
+.tt-meta{font-size:.72rem;color:var(--subtle);display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.tt-status-sel{font-size:.75rem;border:1px solid var(--border);border-radius:var(--radius-xs);padding:2px 6px;font-family:var(--ff);background:var(--surface);cursor:pointer;transition:border-color .15s}
+.tt-status-sel:focus{outline:none;border-color:var(--accent)}
+
+/* No role */
+.no-role{background:var(--surface);border:2px dashed var(--border);border-radius:var(--radius);padding:3rem 1.5rem;text-align:center;grid-column:1/-1}
+.no-role-icon{width:68px;height:68px;border-radius:50%;background:var(--primary-lt);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.7rem;margin:0 auto 1rem}
+
+/* Sys role badge colours */
+.sr-admin{background: #fee2e2;color: #991b1b}.sr-hr{background: #ede9fe;color: #6d28d9}
+.sr-manager{background: #e0f2fe;color: #0369a1}.sr-dev{background: #dbeafe;color: #1d4ed8}
+.sr-tutor{background: #d1fae5;color: #065f46}.sr-intern{background: #fef3c7;color: #92400e}
+.sr-secretary{background: #fce7f3;color: #be185d}.sr-receptionist{background: #ccfbf1;color: #0f766e}
+.sr-staff{background: #f1f5f9;color: #475569}
+
+/* Catalogue (no-role view) */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.8rem}
+.cat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:box-shadow .15s,transform .12s}
+.cat-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.cat-stripe{height:4px}.cat-body{padding:.9rem}
+.cat-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;margin-bottom:.6rem}
+.cat-title{font-size:.86rem;font-weight:700}.cat-dept{font-size:.71rem;color:var(--muted)}
+
+/* Shimmer */
+.shimmer{background:linear-gradient(90deg,var(--border) 25%,#f8fafc 50%,var(--border) 75%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:var(--radius-sm)}
+@keyframes sh{to{background-position:-200% 0}}
+
+/* Toast */
+#toasts{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.4rem;pointer-events:none}
+.toast-item{background:var(--text);color: #fff;border-radius:10px;padding:.65rem 1rem;font-size:.81rem;font-family:var(--ff);display:flex;align-items:center;gap:.55rem;pointer-events:all;box-shadow:var(--shadow-lg);animation:tin .22s ease;max-width:280px}
+.toast-item.s{background: #065f46}.toast-item.d{background: #991b1b}.toast-item.w{background: #78350f}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    {% include 'incs/sidenav.html' %}
+    {% include 'incs/topnav.html' %}
+    <div class="content-page">
+
+<div class="topbar">
+  <a href="/" class="btn-nav"><i class="ri-home-4-line"></i><span class="d-none d-sm-inline">Home</span></a>
+  <a href="/projects" class="btn-nav"><i class="ri-kanban-view"></i><span class="d-none d-md-inline">Projects</span></a>
+  <span style="color:var(--border)">|</span>
+  <span class="topbar-title"><i class="ri-id-card-line" style="color:var(--accent);margin-right:.4rem"></i>My Role &amp; Responsibilities</span>
+</div>
+
+<div class="page" id="pageLayout">
+  <!-- loading shimmer -->
+  <div class="id-card"><div class="shimmer" style="height:300px"></div></div>
+  <div style="display:flex;flex-direction:column;gap:1.1rem">
+    <div class="section"><div class="shimmer" style="height:100px"></div></div>
+    <div class="section"><div class="shimmer" style="height:180px"></div></div>
+    <div class="section"><div class="shimmer" style="height:140px"></div></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+    </div><!-- /content-page -->
+</div><!-- /wrapper -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+const ME = {{ current_user_json | tojson }};
+
+document.addEventListener('DOMContentLoaded', loadAll);
+
+async function loadAll(){
+  try{
+    const [roleResp, taskResp, ttResp] = await Promise.all([
+      api('/api/my-role'),
+      api('/api/v2/tasks?my_tasks=true&per_page=15').catch(()=>({tasks:[]})),
+      api('/api/temp-tasks?per_page=20').catch(()=>({tasks:[]})),
+    ]);
+    render(roleResp, taskResp.tasks||[], ttResp.tasks||[]);
+  }catch(e){ renderError(e.message); }
+}
+
+function render(data, projTasks, tempTasks){
+  const {assignment, role, colleagues=[]} = data;
+
+  if(!assignment||!role){
+    renderNoRole(projTasks, tempTasks);
+    return;
+  }
+
+  // Apply accent
+  document.documentElement.style.setProperty('--accent', role.color||'#4f46e5');
+  document.documentElement.style.setProperty('--accent-lt', (role.color||'#4f46e5')+'1a');
+  document.documentElement.style.setProperty('--accent-d', role.color||'#1d4ed8');
+
+  const myName   = (ME?.name||'').trim()||ME?.username||'You';
+  const myPhoto  = ME?.photo;
+  const sysRoles = (ME?.roles||[]);
+  const sinceDate= assignment.assigned_at?new Date(assignment.assigned_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+
+  const pendingCnt  = projTasks.filter(t=>t.status!=='completed'&&t.status!=='cancelled').length;
+  const completedCnt= projTasks.filter(t=>t.status==='completed').length;
+  const ttPendingCnt= tempTasks.filter(t=>t.status==='pending'||t.status==='in-progress').length;
+
+  const priColors={low:'#22c55e',medium:'#f59e0b',high:'#ef4444',urgent:'#7c3aed',critical:'#7c3aed'};
+
+  document.getElementById('pageLayout').innerHTML =
+    // ── IDENTITY CARD ─────────────────────────────────────────────────
+    '<div>' +
+      '<div class="id-card">' +
+        '<div class="id-banner" style="position:relative">' +
+          '<div class="id-av-wrap">' +
+            '<div class="id-av">'+(myPhoto?'<img src="'+esc(myPhoto)+'">':initials(myName))+'</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="id-body">' +
+          '<div class="id-name">'+esc(myName)+'</div>' +
+          '<div class="id-role"><i class="'+(role.icon||'ri-briefcase-line')+'"></i>'+esc(role.title)+'</div>' +
+          '<div class="id-dept"><i class="ri-building-line"></i>'+esc(role.department||'No department assigned')+'</div>' +
+          (sysRoles.length?sysRoles.map(r=>'<span class="sys-role-chip sr-'+r+'"><i class="ri-shield-line"></i>'+esc(r)+'</span>').join(''):'<span class="sys-role-chip sr-staff"><i class="ri-shield-line"></i>staff</span>') +
+          (assignment.notes?'<div style="font-size:.76rem;color:var(--muted);margin-bottom:.5rem;font-style:italic"><i class="ri-sticky-note-line mr-1"></i>'+esc(assignment.notes)+'</div>':'')+
+          '<div class="id-since"><i class="ri-calendar-check-line"></i> Assigned '+sinceDate+' by '+esc(assignment.assigned_by_name||'Admin')+'</div>' +
+          '<div class="stat-grid">' +
+            '<div class="stat-box"><div class="stat-val">'+pendingCnt+'</div><div class="stat-lbl">Active Tasks</div></div>' +
+            '<div class="stat-box"><div class="stat-val">'+completedCnt+'</div><div class="stat-lbl">Completed</div></div>' +
+            '<div class="stat-box"><div class="stat-val">'+(role.duties?.length||0)+'</div><div class="stat-lbl">Duties</div></div>' +
+            '<div class="stat-box"><div class="stat-val">'+(role.kpis?.length||0)+'</div><div class="stat-lbl">KPIs</div></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      // Quick-action links
+      '<div style="margin-top:1rem;display:flex;flex-direction:column;gap:.5rem">' +
+        '<a href="/projects" class="btn-nav" style="justify-content:center;width:100%"><i class="ri-kanban-view"></i> My Projects</a>' +
+      '</div>' +
+    '</div>' +
+
+    // ── MAIN CONTENT ───────────────────────────────────────────────────
+    '<div class="main">' +
+
+      // Role overview
+      (role.description
+        ? '<div class="section"><div class="s-head"><div class="s-icon"><i class="ri-file-text-line"></i></div><span class="s-title">Role Overview(Description)</span></div><div class="s-body"><p class="desc-text">'+esc(role.description)+'</p></div></div>'
+        : '') +
+
+      // Duties
+      
+      '<div class="section"><div class="s-head">'
+      '<div class="s-icon"><i class="ri-list-check-2"></i></div><span class="s-title">My Job Description (Key Duties &amp; Responsibilities)</span><span class="s-count">'+(role.duties?.length||0)+'</span></div>' +
+        '<div class="s-body">' +
+          (role.duties?.length
+            ? role.duties.map((d,i)=>'<div class="duty-row"><div class="duty-num">'+String(i+1).padStart(2,'0')+'</div><div class="duty-text">'+esc(d)+'</div></div>').join('')
+            : '<p style="color:var(--subtle);font-size:.83rem;text-align:center;padding:1rem 0">No duties defined for this role yet.</p>') +
+        '</div></div>' +
+
+      // KPIs
+      (role.kpis?.length
+        ? '<div class="section"><div class="s-head"><div class="s-icon"><i class="ri-bar-chart-2-line"></i></div><span class="s-title">Job Description (<span>Your Key Performance Indicators)</span><span class="s-count">'+role.kpis.length+'</span></div>' +
+          '<div class="s-body">' +
+            '<p style="font-size:.8rem;color:var(--muted);margin-bottom:.9rem">These are the measurable targets that define success in your role. Use them to track your own performance.</p>' +
+            '<div class="kpi-grid">'+role.kpis.map(k=>'<div class="kpi-card"><span class="kpi-dot"></span><div><div class="kpi-text">'+esc(k)+'</div></div></div>').join('')+'</div>' +
+          '</div></div>'
+        : '') +
+
+      // Requirements
+      (role.requirements?.length
+        ? '<div class="section"><div class="s-head"><div class="s-icon"><i class="ri-graduation-cap-line"></i></div><span class="s-title">Requirements &amp; Qualifications</span><span class="s-count">'+role.requirements.length+'</span></div>' +
+          '<div class="s-body">'+role.requirements.map(r=>'<div class="req-row"><i class="ri-check-double-line" style="color:var(--accent);font-size:.9rem;flex-shrink:0"></i>'+esc(r)+'</div>').join('')+'</div></div>'
+        : '') +
+
+      // Temporary tasks
+      (tempTasks.length
+        ? '<div class="section"><div class="s-head"><div class="s-icon" style="background: #fef3c7;color: #92400e"><i class="ri-task-line"></i></div><span class="s-title">Assigned Tasks(Temporary ones)</span><span class="s-count">'+ttPendingCnt+' active</span></div>' +
+          '<div class="s-body">' +
+            '<p style="font-size:.79rem;color:var(--muted);margin-bottom:.85rem">Ad-hoc tasks assigned to you directly by management.</p>' +
+            tempTasks.map(t=>{
+              const pc=priColors[t.priority]||'#94a3b8';
+              return '<div class="tt-row">' +
+                '<div class="tt-stripe" style="background:'+pc+'"></div>' +
+                '<div class="tt-body">' +
+                  '<div class="d-flex align-items-start justify-content-between">' +
+                    '<div class="tt-title">'+esc(t.title)+'</div>' +
+                    (t.overdue?'<span style="font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:99px;background: #fee2e2;color: #991b1b;white-space:nowrap;margin-left:.5rem"><i class="ri-alarm-warning-line"></i> Overdue</span>':'') +
+                  '</div>' +
+                  (t.detail?'<div class="tt-detail">'+esc(t.detail)+'</div>':'')+
+                  '<div class="tt-meta">' +
+                    (t.due_date?'<span><i class="ri-calendar-line"></i> '+t.due_date+'</span>':'')+
+                    '<span style="color:var(--subtle)">from '+esc(t.assigned_by?.name||'Admin')+'</span>' +
+                    '<select class="tt-status-sel" onchange="updateTempTaskStatus('+t.id+',this.value)">' +
+                      '<option value="pending"'+(t.status==='pending'?' selected':'')+'>Pending</option>' +
+                      '<option value="in-progress"'+(t.status==='in-progress'?' selected':'')+'>In Progress</option>' +
+                      '<option value="done"'+(t.status==='done'?' selected':'')+'>Done</option>' +
+                      '<option value="cancelled"'+(t.status==='cancelled'?' selected':'')+'>Cancelled</option>' +
+                    '</select>' +
+                  '</div>' +
+                '</div>' +
+              '</div>';
+            }).join('') +
+          '</div></div>'
+        : '') +
+
+      // Project tasks
+      (projTasks.length
+        ? '<div class="section"><div class="s-head"><div class="s-icon"><i class="ri-kanban-view"></i></div><span class="s-title">Project Tasks Assigned to Me</span><span class="s-count">'+projTasks.length+'</span></div>' +
+          '<div class="s-body">' +
+            projTasks.map(t=>{
+              const pc=priColors[t.priority]||'#94a3b8';
+              const statusClass='ts-'+(t.status||'pending').replace(/\s/g,'-');
+              return '<div class="task-row">' +
+                '<span class="task-pri" style="background:'+pc+'"></span>' +
+                '<span class="task-desc" title="'+esc(t.description)+'">'+esc(t.description)+'</span>' +
+                (t.due_date?'<span class="task-due"><i class="ri-calendar-line mr-1"></i>'+t.due_date+'</span>':'')+
+                '<span class="task-status '+statusClass+'">'+esc(t.status)+'</span>' +
+              '</div>';
+            }).join('') +
+            '<div class="mt-3 text-right"><a href="/projects" style="font-size:.79rem;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:.3rem">View all projects <i class="ri-arrow-right-line"></i></a></div>' +
+          '</div></div>'
+        : '') +
+
+      // Department colleagues
+      (colleagues.length
+        ? '<div class="section"><div class="s-head"><div class="s-icon"><i class="ri-team-line"></i></div><span class="s-title">Department Colleagues</span><span class="s-count">'+colleagues.length+'</span></div>' +
+          '<div class="s-body">' +
+            '<p style="font-size:.79rem;color:var(--muted);margin-bottom:.85rem">Others in the <strong>'+esc(role.department||'same department')+'</strong> department.</p>' +
+            '<div class="colleague-grid">' +
+              colleagues.map(c=>
+                '<div class="colleague-card">' +
+                  '<div class="c-av">'+(c.user_photo?'<img src="'+c.user_photo+'">':initials(c.name||c.user_name))+'</div>' +
+                  '<div class="c-name">'+esc(c.name||c.user_name)+'</div>' +
+                  '<div class="c-role" style="color:'+c.role_color+'">'+esc(c.role_title||'—')+'</div>' +
+                '</div>'
+              ).join('') +
+            '</div>' +
+          '</div></div>'
+        : '') +
+
+    '</div>';  // end .main
+}
+
+/* ── Update temp task status inline ──── */
+async function updateTempTaskStatus(tid, status){
+  try{
+    await api('/api/temp-tasks/'+tid,{method:'PUT',body:JSON.stringify({status})});
+    toast('Status updated','s');
+    // Refresh after short delay
+    setTimeout(loadAll, 600);
+  }catch(e){ toast(e.message,'d'); }
+}
+
+/* ── No Role State ───────────────────── */
+async function renderNoRole(projTasks, tempTasks){
+  let catalogue=[];
+  try{ const d=await api('/api/roles?active_only=true'); catalogue=d.roles||[]; }catch{}
+
+  const priColors={low:'#22c55e',medium:'#f59e0b',high:'#ef4444',urgent:'#7c3aed'};
+  const myName=(ME?.name||'').trim()||ME?.username||'You';
+  const sysRoles=(ME?.roles||[]);
+
+  document.getElementById('pageLayout').innerHTML=
+    '<div>' +
+      '<div class="id-card">' +
+        '<div class="id-banner"></div>' +
+        '<div class="id-body" style="padding-top:1.5rem">' +
+          '<div class="id-name">'+esc(myName)+'</div>' +
+          (sysRoles.length?sysRoles.map(r=>'<span class="sys-role-chip sr-'+r+'"><i class="ri-shield-line"></i>'+esc(r)+'</span>').join(''):'<span class="sys-role-chip sr-staff"><i class="ri-shield-line"></i>staff</span>') +
+          '<div style="font-size:.82rem;color:var(--muted)"><i class="ri-user-unfollow-line mr-1"></i>No job role assigned yet.</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="main">' +
+      '<div class="section">' +
+        '<div class="s-head"><div class="s-icon" style="background: #fef3c7;color: #92400e"><i class="ri-user-unfollow-line"></i></div><span class="s-title">No Role Assigned</span></div>' +
+        '<div class="s-body" style="text-align:center;padding:2rem 1.5rem">' +
+          '<p style="color:var(--muted);font-size:.86rem;max-width:380px;margin:0 auto">Your administrator has not yet assigned a job role to your account. Contact your HR or admin team to have a role assigned.</p>' +
+        '</div>' +
+      '</div>' +
+
+      // Show temp tasks even if no role
+      (tempTasks.length
+        ? '<div class="section"><div class="s-head"><div class="s-icon" style="background: #fef3c7;color: #92400e"><i class="ri-task-line"></i></div><span class="s-title">Temporary Tasks(Assigned)</span></div>' +
+          '<div class="s-body">'+tempTasks.map(t=>{
+            const pc=priColors[t.priority]||'#94a3b8';
+            return '<div class="tt-row"><div class="tt-stripe" style="background:'+pc+'"></div><div class="tt-body"><div class="tt-title">'+esc(t.title)+'</div>'+(t.detail?'<div class="tt-detail">'+esc(t.detail)+'</div>':'')+'<div class="tt-meta">'+(t.due_date?'<span><i class="ri-calendar-line"></i> '+t.due_date+'</span>':'')+'<select class="tt-status-sel" onchange="updateTempTaskStatus('+t.id+',this.value)"><option value="pending"'+(t.status==='pending'?' selected':'')+'>Pending</option><option value="in-progress"'+(t.status==='in-progress'?' selected':'')+'>In Progress</option><option value="done"'+(t.status==='done'?' selected':'')+'>Done</option><option value="cancelled"'+(t.status==='cancelled'?' selected':'')+'>Cancelled</option></select></div></div></div>';
+          }).join('')+'</div></div>'
+        : '') +
+
+      // Role catalogue
+      (catalogue.length
+        ? '<div class="section"><div class="s-head"><div class="s-icon"><i class="ri-book-open-line"></i></div><span class="s-title">Organisation Role Catalogue</span><span class="s-count">'+catalogue.length+'</span></div>' +
+          '<div class="s-body">' +
+            '<p style="font-size:.8rem;color:var(--muted);margin-bottom:.9rem">These are the standard roles defined in your organisation:</p>' +
+            '<div class="cat-grid">'+catalogue.map(r=>'<div class="cat-card"><div class="cat-stripe" style="background:'+r.color+'"></div><div class="cat-body"><div class="cat-icon" style="background:'+r.color+'1a;color:'+r.color+'"><i class="'+(r.icon||'ri-briefcase-line')+'"></i></div><div class="cat-title">'+esc(r.title)+'</div><div class="cat-dept">'+esc(r.department||'—')+'</div><div style="font-size:.7rem;color:var(--muted);margin-top:.35rem">'+(r.duties?.length||0)+' duties · '+(r.kpis?.length||0)+' KPIs</div></div></div>').join('')+'</div>' +
+          '</div></div>'
+        : '') +
+    '</div>';
+}
+
+function renderError(msg){
+  document.getElementById('pageLayout').innerHTML=
+    '<div style="grid-column:1/-1;text-align:center;padding:4rem">' +
+      '<div style="font-size:2.2rem;color: #dc2626;margin-bottom:.75rem"><i class="ri-alert-line"></i></div>' +
+      '<h6 style="font-weight:700">Could not load your role data</h6>' +
+      '<p style="color:var(--muted);font-size:.84rem">'+esc(msg)+'</p>' +
+      '<button onclick="loadAll()" style="margin-top:.75rem" class="btn-nav"><i class="ri-refresh-line"></i> Retry</button>' +
+    '</div>';
+}
+
+/* ── Utils ───────────────────────────── */
+async function api(url,opts={}){
+  const r=await fetch(url,{headers:{'Content-Type':'application/json',...(opts.headers||{})},...opts});
+  const d=await r.json(); if(!r.ok)throw new Error(d.error||r.statusText); return d;
+}
+function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'}
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function toast(msg,type='s'){
+  const icons={s:'ri-checkbox-circle-line',d:'ri-close-circle-line',w:'ri-alert-line'};
+  const el=document.createElement('div'); el.className='toast-item '+type;
+  el.innerHTML='<i class="'+(icons[type]||'ri-information-line')+'"></i>'+esc(msg);
+  document.getElementById('toasts').appendChild(el); setTimeout(()=>el.remove(),4200);
+}
+</script>
+{% endblock %}

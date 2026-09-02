@@ -18,13 +18,13 @@ from wtforms import (
 
 from wtforms.validators import (
     Optional, DataRequired, Length, Email, EqualTo, ValidationError)
-from web.models import User, Role
+from web.models.users import User, Role
 
 """  """
 from flask_wtf.file import FileField, FileAllowed
 """  """
 level_choice = [('','Course Level'), ('novice','Novice'), ('beginner','Beginner'), ('expert','Expert'),  ('pro','Pro'), ('advanced','Advanced') ]
-gender_choice = [('', 'Gender'), ('f', 'Female'), ('m', 'Male'), ('o', 'Other')]
+gender_choice = [('', 'Gender'), ('f', 'Female'), ('m', 'Male')]
 lang_choice = [('', 'language'), ('english', 'english'), ('french', 'french'), ('spanish', 'spanish'), ('latin', 'latin'), ('pidgin', 'pidgin'), ('other', 'other')]
 city_choice = [('', 'current city'), ('Lagos','Lagos'), ('Portharcourt','Portharcourt'), ('New York','New York'), ('Canada','Canada'), ('Calabar','Calabar'), ('Uyo','Uyo')]
 role_choice = [('', 'Assign Role')]
@@ -93,15 +93,35 @@ refferee_choice = [
 course_choice = [
     ('', 'Courses'), 
     ('frontend','Frontend Development'), 
+    ('cloud-security','Cloud Security'), 
+    ('digital-marketing','Digital Marketing'), 
+    ('3d-animation','3D Animation'), 
+    ('scratch','Scratch'), 
+    ('computer-fundamentals','Computer Fundamentals'),
+    ('coding-fundamentals','Coding Fundamentals'),
     ('backend-development','Backend Development'), 
-    ('full-stack','FUllstack Development'),
+    ('full-stack','Fullstack Development'),
     ('data-science','Data Science / Analysis'), 
     ('cyber-security','Cyber Security'), 
-    ('fundamentals','Computer Fundamentals'), 
     ('software-enginnering','Software Engineering'), 
     ('ui/ux','UI/UX Design'),
-    ('graphics','Graphic Design')
-               ]
+    ('graphics','Graphic Design'), 
+    ('kid-basic-ict','Kids Basic ICT'),
+    ('coders-web','Coder Web'),
+    ('coders-stage-01','Coders Stage 01'),
+    ('coders-stage-02','Coders Stage 02'),
+    ('coders-stage-03','Coders Stage 03')
+    ]
+
+category_choice = [
+    ('', 'Choose one'), 
+    ('staff', 'Staff(Full time)'), 
+    ('intern-staff', 'Intern Staffs'), 
+    ('corper-staff', 'Corper Staffs'), 
+    ('intern-student', 'Intern Students'), 
+    ('customer', 'Customer'), 
+    ('student', 'Student')
+    ]
 
 def is_admin(user):
     return user.is_authenticated and 'admin' in user.roles
@@ -186,9 +206,9 @@ class UpdateMeForm(FlaskForm):
     bank = SelectField('Bank:', validators=[Optional()], choices=bank_choice )
     city = SelectField('City', choices=city_choice, validators=[DataRequired()])
     address = StringField('Your Residential Address', validators=[DataRequired()])
-    role = SelectField('My Role', coerce=int, choices=role_choice)
-    category = SelectField('User Category', 
-                           choices=[('', 'Select'), ('staff', 'A staff'), ('customer', 'A Customer'), ('student', 'A student')])
+    # role = SelectField('My Role', coerce=int, choices=role_choice)
+    role = SelectField('My Role', choices=role_choice)
+    category = SelectField('User Category', choices=category_choice )
     gender = SelectField('Gender', validators=[DataRequired()], choices=gender_choice)
     about = TextAreaField('About You')
     
@@ -210,7 +230,7 @@ class UpdateMeForm(FlaskForm):
     refferee_address = StringField('Refferee\'s Address:')
     
     dob = DateField('Date Of Birth', validators=[DataRequired()], format='%Y-%m-%d')
-    reg_num = StringField('Registration Number:')
+    reg_num = StringField('Reg/ID Number:')
     course = SelectField('Enrolled in:', choices=course_choice )
     cert_status = SelectField('Certificate Status:', choices=cert_status_choice )
     completion_status = SelectField('Completion Status:', choices=completion_status_choice )

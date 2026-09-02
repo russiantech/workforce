@@ -1,6 +1,6 @@
 __pycache__/
 migrations/
-flask_session/
+flask_sessions/
 env/
 venv/
 web/.env

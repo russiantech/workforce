@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="en">
 <head>
-<title>Workforce . Dunistech Academy</title>
+<title>Workforce . Dunistechnologies Limited </title>
  {% include 'incs/metas.html' %}
-{{ moment.include_moment() }}
-
+{# {{ moment.include_moment() }} #}
 <link rel="stylesheet" href="{{url_for('static', filename='css/mycustom_styles.css')}}"/>
+ {% block head_extra %} {% endblock head_extra %}
+
 </head>
 <body class="">
     <!-- loader Start -->
@@ -23,13 +24,16 @@
     <!-- Backend Bundle JavaScript -->
     {% include 'incs/bottom_js.html' %}
     <script src = "{{url_for('static', filename='js/attendance.js')}}"></script>
-    {% block page_js %} {% endblock page_js %}
+    {% block page_js %} 
+    
+    {% endblock page_js %}
     <!-- - modals -->
     {% include "incs/response_modal.html" %}
     {% include "incs/assigned_tasks_modal.html" %}
     {% include "incs/attendance_modal.html" %}
 
 <script>
+
     function showCrudModal(message) {
         document.getElementById('crudModalBody').innerText = message;
         $('#crudModal').modal('show');
@@ -92,30 +96,6 @@
 
     });
 
-    /*
-    // Click event handler for reading notifications
-    $(document).on('click', '.btn-read', function() {
-        var notificationId = $(this).data('notification-id');
-        $.ajax({
-            url: `/mark_as_read/${notificationId}`, // Backend route to mark notification as read
-            type: 'PUT', // Use PUT or POST method as per your backend implementation
-            success: function(data) {
-                if (data.success) {
-                    console.log('Notification marked as read:', notificationId);
-                    // Optionally, handle UI update after marking as read
-                    // E.g., remove the notification from the list or update its style
-                    fetchNotifications();
-
-                } else {
-                    console.error('Error marking notification as read:', data.error);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error marking notification as read:', error);
-            }
-        });
-    }); */
-
     $(document).ready(function() {
         // Function to handle click on notification
         $(document).on('click', '.btn-read', function(e) {
@@ -161,7 +141,6 @@
 
     });
     
-
     $(document).on('click', '.impersonate', function (){
         var user_id = $(this).data('user-id');
         var action = $(this).data('action');
@@ -195,5 +174,10 @@
     });
 
 </script>
+
+{% block scripts %}
+
+{% endblock scripts %}
+
 </body>
 </html>

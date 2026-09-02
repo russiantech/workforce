@@ -30,11 +30,31 @@ SQLALCHEMY_MAX_OVERFLOW = 20  # Allow up to 20 additional connections beyond the
 SQLALCHEMY_POOL_RECYCLE = 3600  # Recycle connections every hour
  
 LOG_TO_STDOUT = environ.get('LOG_TO_STDOUT')
-MAIL_SERVER = environ.get('MAIL_SERVER')
-MAIL_PORT = int(environ.get('MAIL_PORT') or 25)
-MAIL_USE_TLS = environ.get('MAIL_USE_TLS') is not None
+
+
+#
+# Email settings - MATCH YOUR WORKING TEST EXACTLY
+MAIL_SERVER = 'smtp.gmail.com'
+MAIL_PORT = 465
+MAIL_USE_SSL = True
+MAIL_USE_TLS = False  # Must be False when using SSL
 MAIL_USERNAME = environ.get('MAIL_USERNAME')
-MAIL_PASSWORD = environ.get('MAIL_PASSWORD')
+MAIL_PASSWORD = environ.get('MAIL_PASSWORD')  # Remove spaces! Your app password without spaces
+MAIL_DEFAULT_SENDER = 'simlovely7@gmail.com'
+MAIL_ASCII_ATTACHMENTS = False
+
+# Test mode - ensure this is False
+MAIL_SUPPRESS_SEND = False
+TESTING = False
+
+# print(MAIL_SERVER, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD, MAIL_DEFAULT_SENDER)
+
+# Scheduler settings (optional — defaults shown)
+WEEKLY_REPORT_DAY  = 6       # 0=Mon … 6=Sun
+WEEKLY_REPORT_HOUR = 7       # 07:00
+WEEKLY_REPORT_MIN  = 0
+SCHEDULER_TIMEZONE = 'Africa/Lagos'   # use your local timezone
+
 ADMINS = ['jameschristo962@gmail.com', 'chrisjsmez@gmail.com']
 LANGUAGES = ['en', 'es']
 MS_TRANSLATOR_KEY = environ.get('MS_TRANSLATOR_KEY')
@@ -50,8 +70,10 @@ MAX_CONTENT_LENGTH = 1024 * 1024
 
 #prevents Shared Session Cookies
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = True  # If using HTTPS
+SESSION_COOKIE_SECURE = False  # If using HTTPS
 SESSION_TYPE = 'filesystem'
+
+WTF_CSRF_ENABLED = False # fixes CORS csrf token issues arising from wtf forms.
 
 LOGO = {
         'favicon': './images/logo/dunistech.png',

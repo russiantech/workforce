@@ -1,0 +1,576 @@
+{% extends "base.html" %}
+{% block title %}Daily Tasks — Workforce{% endblock %}
+
+{% block head_extra %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+.dt-app {
+  --ff:         'Plus Jakarta Sans', system-ui, sans-serif;
+  --bg:         #f1f3f9;
+  --surface:    #ffffff;
+  --border:     #e4e9f2;
+  --text:       #111827;
+  --muted:      #6b7280;
+  --subtle:     #9ca3af;
+  --primary:    #4f46e5;
+  --primary-lt: #eef2ff;
+  --radius:     14px;
+  --radius-sm:  8px;
+  --shadow:     0 1px 3px rgba(0,0,0,.06), 0 4px 20px rgba(0,0,0,.05);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.08), 0 12px 40px rgba(0,0,0,.06);
+  font-family: var(--ff); color: var(--text);
+  background: var(--bg);
+  margin: -15px -15px 0;
+  padding: 1.5rem;
+  min-height: calc(100vh - 105px);
+}
+@media (max-width: 576px) { .dt-app { padding: 1rem; margin: -15px -15px 0; } }
+
+.dt-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.25rem; }
+.dt-header .title-wrap { display: flex; align-items: center; gap: .65rem; min-width: 0; }
+.dt-header .icon-wrap {
+  width: 38px; height: 38px; border-radius: 10px; background: var(--primary-lt); color: var(--primary);
+  display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+}
+.dt-header h4 { margin: 0; font-weight: 800; font-size: 1.15rem; }
+.dt-header p  { margin: 0; color: var(--muted); font-size: .82rem; }
+@media (max-width: 480px) { .dt-header { flex-direction: column; align-items: stretch; } .dt-header button { width: 100%; justify-content: center; } }
+
+.btn-primary-dt {
+  background: var(--primary); color: #fff; border: none; border-radius: 8px;
+  padding: .5rem 1rem; font-size: .84rem; font-weight: 600; font-family: var(--ff);
+  cursor: pointer; display: inline-flex; align-items: center; gap: .4rem;
+  transition: background .15s, box-shadow .15s; white-space: nowrap;
+}
+.btn-primary-dt:hover { background: #4338ca; box-shadow: 0 4px 14px rgba(79,70,229,.35); color:#fff; }
+.btn-ghost-dt {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+  padding: .45rem .9rem; font-size: .8rem; font-weight: 600; font-family: var(--ff); cursor: pointer;
+}
+
+.dt-stat-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: .8rem; margin-bottom: 1.25rem; }
+@media (max-width: 992px) { .dt-stat-strip { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 480px) { .dt-stat-strip { grid-template-columns: repeat(2, 1fr); } }
+.dt-stat-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .95rem 1.1rem;
+}
+.dt-stat-val { font-size: 1.5rem; font-weight: 800; line-height: 1; }
+.dt-stat-lbl { font-size: .72rem; color: var(--muted); margin-top: .2rem; }
+.dt-stat-card.overdue .dt-stat-val { color: #b91c1c; }
+
+.dt-toolbar { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
+.dt-toolbar select, .dt-toolbar input {
+  border: 1px solid var(--border); border-radius: 8px; padding: .4rem .7rem; font-size: .82rem;
+  font-family: var(--ff); background: var(--surface); color: var(--text);
+}
+@media (max-width: 480px) { .dt-toolbar select { width: 100%; } }
+
+.dt-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; align-items: start; }
+@media (max-width: 1100px) { .dt-board { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 620px)  { .dt-board { grid-template-columns: 1fr; } }
+
+.dt-col { background: #eef0f7; border-radius: var(--radius); padding: .75rem; min-height: 120px; }
+.dt-col-head { display: flex; align-items: center; justify-content: space-between; padding: .2rem .3rem .6rem; }
+.dt-col-head h6 { margin: 0; font-size: .82rem; font-weight: 700; display: flex; align-items: center; gap: .4rem; }
+.dt-col-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.dt-col-count { font-size: .68rem; background: var(--surface); color: var(--muted); padding: 1px 7px; border-radius: 99px; font-weight: 700; }
+
+.dt-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: .75rem .85rem; margin-bottom: .6rem; box-shadow: var(--shadow);
+  transition: box-shadow .15s, transform .15s; cursor: pointer;
+}
+.dt-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.dt-card-title { font-weight: 700; font-size: .85rem; margin-bottom: .3rem; }
+.dt-card-detail { font-size: .78rem; color: var(--muted); margin-bottom: .5rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.dt-card-foot { display: flex; align-items: center; justify-content: space-between; gap: .4rem; }
+
+.dt-avatars { display: flex; align-items: center; }
+.dt-av {
+  width: 24px; height: 24px; border-radius: 50%; background: var(--primary-lt); color: var(--primary);
+  font-size: .58rem; font-weight: 700; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;
+  border: 2px solid var(--surface); margin-left: -8px;
+}
+.dt-avatars .dt-av:first-child { margin-left: 0; }
+.dt-av img { width: 100%; height: 100%; object-fit: cover; }
+.dt-av.more { background: #e5e7eb; color: #4b5563; }
+
+.dt-progress-pill { font-size: .68rem; font-weight: 700; color: var(--muted); background: #f3f4f6; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+
+.badge-dt { display: inline-flex; align-items: center; gap: .25rem; font-size: .66rem; font-weight: 700; padding: 2px 7px; border-radius: 99px; white-space: nowrap; }
+.badge-pri-low      { background:#dcfce7; color:#15803d; }
+.badge-pri-medium   { background:#fef9c3; color:#92400e; }
+.badge-pri-high     { background:#fee2e2; color:#b91c1c; }
+.badge-pri-critical { background:#ede9fe; color:#6d28d9; }
+.badge-status-pending     { background:#e0e7ff; color:#4338ca; }
+.badge-status-in_progress { background:#fef3c7; color:#92400e; }
+.badge-status-completed   { background:#dcfce7; color:#15803d; }
+.badge-status-missed      { background:#fee2e2; color:#b91c1c; }
+.badge-status-cancelled   { background:#f3f4f6; color:#6b7280; }
+
+.dt-due { font-size: .7rem; color: var(--muted); }
+.dt-due.overdue { color: #b91c1c; font-weight: 700; }
+
+.dt-empty { text-align: center; color: var(--subtle); font-size: .78rem; padding: 1.5rem .5rem; }
+
+#dt-toasts { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: .5rem; max-width: calc(100vw - 2rem); }
+.dt-toast { background: var(--text); color: #fff; border-radius: 10px; padding: .65rem 1rem; font-size: .82rem; font-family: var(--ff); box-shadow: var(--shadow-md); }
+.dt-toast.success { background: #065f46; }
+.dt-toast.danger  { background: #991b1b; }
+
+.dt-modal-label { font-weight: 600; font-size: .8rem; margin-bottom: .3rem; display: block; }
+.dt-assignee-list { max-height: 160px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: .5rem .75rem; }
+.dt-assignee-list label { display: flex; align-items: center; gap: .5rem; font-size: .82rem; font-weight: 500; padding: .3rem 0; margin: 0; }
+
+.dt-detail-assignee { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .5rem 0; border-bottom: 1px solid var(--border); }
+.dt-detail-assignee:last-child { border-bottom: none; }
+.dt-detail-who { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.dt-detail-who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .82rem; font-weight: 600; }
+
+.dt-timeline { max-height: 280px; overflow-y: auto; padding-right: .25rem; }
+.dt-log-item { display: flex; gap: .6rem; padding: .6rem 0; border-bottom: 1px solid var(--border); }
+.dt-log-item:last-child { border-bottom: none; }
+.dt-log-body { font-size: .82rem; color: var(--text); background: #f9fafb; border-radius: 8px; padding: .5rem .7rem; margin-top: .2rem; }
+.dt-log-meta { font-size: .7rem; color: var(--muted); }
+.dt-activity-item { font-size: .74rem; color: var(--muted); padding: .35rem 0; display: flex; gap: .5rem; }
+.dt-activity-item .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--subtle); margin-top: .35rem; flex-shrink: 0; }
+
+.dt-modal-scroll { max-height: 70vh; overflow-y: auto; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    {% include 'incs/sidenav.html' %}
+    {% include 'incs/topnav.html' %}
+    <div class="content-page">
+<div class="dt-app">
+
+  <div class="dt-header">
+    <div class="title-wrap">
+      <div class="icon-wrap"><i class="ri-list-check-2"></i></div>
+      <div>
+        <h4>Daily Tasks</h4>
+        <p>{% if is_manager %}Assign and track day-to-day duties for your team.{% else %}Your assigned duties — update your progress and log what you've done.{% endif %}</p>
+      </div>
+    </div>
+    <button class="btn-primary-dt" id="btnNewDailyTask">
+      <i class="ri-add-line"></i> {% if is_manager %}Assign Task{% else %}Add Task{% endif %}
+    </button>
+  </div>
+
+  <div class="dt-stat-strip">
+    <div class="dt-stat-card"><div class="dt-stat-val" id="statTotal">0</div><div class="dt-stat-lbl">Total tasks</div></div>
+    <div class="dt-stat-card"><div class="dt-stat-val" id="statPending">0</div><div class="dt-stat-lbl">Pending</div></div>
+    <div class="dt-stat-card"><div class="dt-stat-val" id="statProgress">0</div><div class="dt-stat-lbl">In progress</div></div>
+    <div class="dt-stat-card"><div class="dt-stat-val" id="statCompleted">0</div><div class="dt-stat-lbl">Completed</div></div>
+    <div class="dt-stat-card overdue"><div class="dt-stat-val" id="statOverdue">0</div><div class="dt-stat-lbl">Overdue</div></div>
+  </div>
+
+  {% if is_manager %}
+  <div class="dt-toolbar">
+    <select id="filterStaff">
+      <option value="">All staff</option>
+      {% for u in staff %}
+      <option value="{{ u.id }}">{{ u.name or u.username }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  <div class="dt-board">
+    <div class="dt-col" data-status="pending">
+      <div class="dt-col-head"><h6><span class="dt-col-dot" style="background:#818cf8"></span>Pending</h6><span class="dt-col-count" id="cnt-pending">0</span></div>
+      <div class="dt-col-body" id="col-pending"></div>
+    </div>
+    <div class="dt-col" data-status="in_progress">
+      <div class="dt-col-head"><h6><span class="dt-col-dot" style="background:#f59e0b"></span>In Progress</h6><span class="dt-col-count" id="cnt-in_progress">0</span></div>
+      <div class="dt-col-body" id="col-in_progress"></div>
+    </div>
+    <div class="dt-col" data-status="completed">
+      <div class="dt-col-head"><h6><span class="dt-col-dot" style="background:#10b981"></span>Completed</h6><span class="dt-col-count" id="cnt-completed">0</span></div>
+      <div class="dt-col-body" id="col-completed"></div>
+    </div>
+    <div class="dt-col" data-status="missed">
+      <div class="dt-col-head"><h6><span class="dt-col-dot" style="background:#ef4444"></span>Missed</h6><span class="dt-col-count" id="cnt-missed">0</span></div>
+      <div class="dt-col-body" id="col-missed"></div>
+    </div>
+  </div>
+
+</div>
+<div id="dt-toasts"></div>
+
+<!-- New / Edit Task Modal -->
+<div class="modal fade" id="dailyTaskModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="dtModalTitle">Assign Task</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body dt-modal-scroll">
+        <input type="hidden" id="dt-id">
+        <div class="mb-3">
+          <label class="dt-modal-label">Title (optional)</label>
+          <input type="text" id="dt-title" class="form-control form-control-sm" placeholder="e.g. Submit weekly report">
+        </div>
+        <div class="mb-3">
+          <label class="dt-modal-label">Description *</label>
+          <textarea id="dt-detail" class="form-control form-control-sm" rows="3" placeholder="What needs to be done"></textarea>
+        </div>
+        {% if is_manager %}
+        <div class="mb-3">
+          <label class="dt-modal-label">Assign to * <span style="font-weight:400;color:var(--muted);">(select one or more)</span></label>
+          <div class="dt-assignee-list" id="dt-assignee-list">
+            {% for u in staff %}
+            <label><input type="checkbox" class="dt-assignee-checkbox" value="{{ u.id }}"> {{ u.name or u.username }}</label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        <div class="row">
+          <div class="col-6 mb-3">
+            <label class="dt-modal-label">Priority</label>
+            <select id="dt-priority" class="form-control form-control-sm">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+          <div class="col-6 mb-3">
+            <label class="dt-modal-label">Due date</label>
+            <input type="date" id="dt-due" class="form-control form-control-sm">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light btn-sm" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btnSaveDailyTask">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Detail Modal: assignees, activity timeline, add work-log -->
+<div class="modal fade" id="dailyTaskDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title mb-1" id="dtDetailTitle">Task</h5>
+          <div id="dtDetailMeta" style="font-size:.78rem;color:#6b7280;"></div>
+        </div>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body dt-modal-scroll">
+        <p id="dtDetailDetail" style="font-size:.9rem; color:#374151;"></p>
+
+        <h6 class="mt-3 mb-2" style="font-size:.8rem; font-weight:700;">Assignees & progress</h6>
+        <div id="dtDetailAssignees"></div>
+
+        {% if is_manager %}
+        <div class="mt-2">
+          <button class="btn btn-light btn-sm" id="btnEditFromDetail"><i class="ri-pencil-line"></i> Edit assignees / details</button>
+          <button class="btn btn-outline-danger btn-sm" id="btnDeleteFromDetail"><i class="ri-delete-bin-line"></i> Delete task</button>
+        </div>
+        {% endif %}
+
+        <h6 class="mt-4 mb-2" style="font-size:.8rem; font-weight:700;">Activity & work log</h6>
+        <div class="dt-timeline" id="dtTimeline"></div>
+
+        <h6 class="mt-4 mb-2" style="font-size:.8rem; font-weight:700;">Log what you did</h6>
+        <textarea id="dtLogBody" class="form-control form-control-sm mb-2" rows="2" placeholder="Describe exactly what you did towards this task..."></textarea>
+        <div class="d-flex align-items-center" style="gap:.5rem; flex-wrap: wrap;">
+          <select id="dtLogStatus" class="form-control form-control-sm" style="max-width:180px;">
+            <option value="">Don't change my status</option>
+            <option value="in_progress">Mark: In Progress</option>
+            <option value="completed">Mark: Completed</option>
+            <option value="missed">Mark: Missed</option>
+          </select>
+          <button class="btn btn-primary-dt" id="btnSubmitLog" style="border-radius:8px;"><i class="ri-send-plane-line"></i> Log update</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </div><!-- /content-page -->
+</div><!-- /wrapper -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+const IS_MANAGER = {{ 'true' if is_manager else 'false' }};
+const CURRENT_USER_ID = {{ current_user.id }};
+let allTasks = [];
+let currentDetailTaskId = null;
+
+const STATUS_LABELS = { pending: 'Pending', in_progress: 'In Progress', completed: 'Completed', missed: 'Missed', cancelled: 'Cancelled' };
+
+document.addEventListener('DOMContentLoaded', function () {
+  loadTasks();
+  loadSummary();
+
+  document.getElementById('btnNewDailyTask').addEventListener('click', () => openTaskModal(null));
+  document.getElementById('btnSaveDailyTask').addEventListener('click', saveTask);
+  document.getElementById('btnSubmitLog').addEventListener('click', submitLog);
+
+  const editBtn = document.getElementById('btnEditFromDetail');
+  if (editBtn) editBtn.addEventListener('click', () => {
+    const t = allTasks.find(x => x.id === currentDetailTaskId);
+    $('#dailyTaskDetailModal').modal('hide');
+    openTaskModal(t);
+  });
+  const delBtn = document.getElementById('btnDeleteFromDetail');
+  if (delBtn) delBtn.addEventListener('click', () => deleteTask(currentDetailTaskId, true));
+
+  const staffFilter = document.getElementById('filterStaff');
+  if (staffFilter) staffFilter.addEventListener('change', () => { loadTasks(); loadSummary(); });
+
+  // Deep link support: /daily-tasks?task=123 (from notification emails/bell)
+  const params = new URLSearchParams(window.location.search);
+  const taskParam = params.get('task');
+  if (taskParam) setTimeout(() => openDetailModal(parseInt(taskParam)), 400);
+});
+
+async function apiFetch(url, opts = {}) {
+  const res = await fetch(url, { headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) }, ...opts });
+  const d = await res.json();
+  if (!res.ok || d.success === false) throw new Error(d.error || res.statusText);
+  return d;
+}
+
+function currentFilters() {
+  const params = new URLSearchParams();
+  const staffFilter = document.getElementById('filterStaff');
+  if (staffFilter && staffFilter.value) params.set('assigned_to_id', staffFilter.value);
+  return params.toString();
+}
+
+async function loadTasks() {
+  try {
+    const qs = currentFilters();
+    const d = await apiFetch('/api/daily-tasks' + (qs ? '?' + qs : ''));
+    allTasks = d.tasks || [];
+    renderBoard();
+  } catch (e) { toast('Could not load tasks: ' + e.message, 'danger'); }
+}
+
+async function loadSummary() {
+  try {
+    const qs = currentFilters();
+    const d = await apiFetch('/api/daily-tasks/summary' + (qs ? '?' + qs : ''));
+    setText('statTotal', d.total || 0);
+    setText('statPending', (d.counts && d.counts.pending) || 0);
+    setText('statProgress', (d.counts && d.counts.in_progress) || 0);
+    setText('statCompleted', (d.counts && d.counts.completed) || 0);
+    setText('statOverdue', d.overdue || 0);
+  } catch (e) { /* non-fatal */ }
+}
+
+function renderBoard() {
+  ['pending', 'in_progress', 'completed', 'missed'].forEach(status => {
+    const col = document.getElementById('col-' + status);
+    const items = allTasks.filter(t => t.status === status);
+    setText('cnt-' + status, items.length);
+    col.innerHTML = items.length ? items.map(renderCard).join('') : '<div class="dt-empty">No tasks here</div>';
+  });
+}
+
+function avatarHtml(a) {
+  return a.photo ? `<img src="${a.photo}">` : initials(a.name);
+}
+
+function renderCard(t) {
+  const today = new Date().toISOString().slice(0, 10);
+  const overdue = t.due_date && t.due_date < today && !['completed', 'cancelled'].includes(t.status);
+  const shown = t.assignees.slice(0, 3);
+  const extra = t.assignees.length - shown.length;
+
+  return `
+    <div class="dt-card" onclick="openDetailModal(${t.id})">
+      <div class="dt-card-title">${esc(t.title)}</div>
+      <div class="dt-card-detail">${esc(t.detail)}</div>
+      <div class="dt-card-foot">
+        <div class="dt-avatars">
+          ${shown.map(a => `<span class="dt-av" title="${esc(a.name)}">${avatarHtml(a)}</span>`).join('')}
+          ${extra > 0 ? `<span class="dt-av more">+${extra}</span>` : ''}
+        </div>
+        <span class="badge-dt badge-pri-${t.priority}">${t.priority}</span>
+      </div>
+      <div class="dt-card-foot mt-2">
+        <span class="dt-due ${overdue ? 'overdue' : ''}">${t.due_date ? ('Due ' + t.due_date) : 'No due date'}</span>
+        <span class="dt-progress-pill">${t.completed_count}/${t.assignee_count} done ${t.log_count ? ' · ' + t.log_count + ' update' + (t.log_count > 1 ? 's' : '') : ''}</span>
+      </div>
+    </div>`;
+}
+
+// ── Task detail modal ──────────────────────────────────────────────────
+async function openDetailModal(taskId) {
+  try {
+    const d = await apiFetch('/api/daily-tasks/' + taskId);
+    const t = d.task;
+    currentDetailTaskId = t.id;
+
+    document.getElementById('dtDetailTitle').textContent = t.title;
+    document.getElementById('dtDetailDetail').textContent = t.detail;
+    document.getElementById('dtDetailMeta').innerHTML =
+      `<span class="badge-dt badge-pri-${t.priority}">${t.priority}</span> &nbsp; ${t.due_date ? 'Due ' + t.due_date : 'No due date'} ${t.assigned_by ? ' &nbsp;·&nbsp; Assigned by ' + esc(t.assigned_by.name) : ''}`;
+
+    document.getElementById('dtDetailAssignees').innerHTML = t.assignees.map(a => `
+      <div class="dt-detail-assignee">
+        <div class="dt-detail-who">
+          <span class="dt-av" style="margin-left:0;">${avatarHtml(a)}</span>
+          <span>${esc(a.name)}${a.user_id === CURRENT_USER_ID ? ' (you)' : ''}</span>
+        </div>
+        ${a.user_id === CURRENT_USER_ID
+          ? `<select class="dt-status-select" style="font-size:.72rem;border:1px solid #e4e9f2;border-radius:6px;padding:.15rem .4rem;" onchange="quickStatus(${t.id}, this.value)">
+              ${Object.keys(STATUS_LABELS).filter(s => s !== 'cancelled').map(s => `<option value="${s}" ${s === a.status ? 'selected' : ''}>${STATUS_LABELS[s]}</option>`).join('')}
+             </select>`
+          : `<span class="badge-dt badge-status-${a.status}">${STATUS_LABELS[a.status] || a.status}</span>`}
+      </div>
+    `).join('');
+
+    const timeline = [
+      ...t.logs.map(l => ({ ...l, _type: 'log' })),
+      ...t.activities.map(a => ({ ...a, _type: 'activity' })),
+    ].sort((a, b) => new Date(b.created) - new Date(a.created));
+
+    document.getElementById('dtTimeline').innerHTML = timeline.length ? timeline.map(item => {
+      if (item._type === 'log') {
+        return `<div class="dt-log-item">
+          <span class="dt-av" style="margin-left:0;">${item.author_photo ? `<img src="${item.author_photo}">` : initials(item.author_name)}</span>
+          <div style="flex:1;min-width:0;">
+            <div class="dt-log-meta"><b>${esc(item.author_name)}</b> · ${formatWhen(item.created)}</div>
+            <div class="dt-log-body">${esc(item.body)}</div>
+          </div>
+        </div>`;
+      }
+      return `<div class="dt-activity-item"><span class="dot"></span><span>${describeActivity(item)} · ${formatWhen(item.created)}</span></div>`;
+    }).join('') : '<div class="dt-empty">No activity yet</div>';
+
+    document.getElementById('dtLogBody').value = '';
+    document.getElementById('dtLogStatus').value = '';
+
+    $('#dailyTaskDetailModal').modal('show');
+    // reflect the URL so the link is shareable / matches notification deep-links
+    if (history.replaceState) history.replaceState(null, '', '/daily-tasks?task=' + taskId);
+  } catch (e) { toast(e.message, 'danger'); }
+}
+
+function describeActivity(a) {
+  const who = esc(a.actor_name || 'Someone');
+  switch (a.action) {
+    case 'created': return `${who} created this task`;
+    case 'assigned': return `${who}: ${esc(a.detail || 'assigned someone')}`;
+    case 'unassigned': return `${who}: ${esc(a.detail || 'removed someone')}`;
+    case 'status_changed': return `${who} changed status ${a.old_value ? 'from ' + STATUS_LABELS[a.old_value] + ' ' : ''}to ${STATUS_LABELS[a.new_value] || a.new_value}`;
+    case 'priority_changed': return `${who} changed priority to ${a.new_value}`;
+    case 'due_date_changed': return `${who} changed the due date to ${a.new_value || 'none'}`;
+    case 'log_added': return `${who} logged an update`;
+    case 'deleted': return `${who} deleted this task`;
+    default: return `${who} ${a.action}`;
+  }
+}
+
+function formatWhen(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+async function submitLog() {
+  const body = document.getElementById('dtLogBody').value.trim();
+  if (!body) { toast('Please describe what you did', 'danger'); return; }
+  const status = document.getElementById('dtLogStatus').value;
+  try {
+    const payload = { body };
+    if (status) payload.status = status;
+    await apiFetch(`/api/daily-tasks/${currentDetailTaskId}/logs`, { method: 'POST', body: JSON.stringify(payload) });
+    toast('Update logged', 'success');
+    await loadTasks(); loadSummary();
+    openDetailModal(currentDetailTaskId);
+  } catch (e) { toast(e.message, 'danger'); }
+}
+
+async function quickStatus(id, status) {
+  try {
+    await apiFetch('/api/daily-tasks/' + id, { method: 'PUT', body: JSON.stringify({ status }) });
+    toast('Status updated', 'success');
+    await loadTasks(); loadSummary();
+    if (currentDetailTaskId === id) openDetailModal(id);
+  } catch (e) { toast(e.message, 'danger'); }
+}
+
+// ── Create / edit modal ─────────────────────────────────────────────────
+function openTaskModal(task) {
+  document.getElementById('dt-id').value = task ? task.id : '';
+  document.getElementById('dt-title').value = task ? (task.title || '') : '';
+  document.getElementById('dt-detail').value = task ? (task.detail || '') : '';
+  document.getElementById('dt-priority').value = task ? task.priority : 'medium';
+  document.getElementById('dt-due').value = task ? (task.due_date || '') : '';
+  document.getElementById('dtModalTitle').textContent = task ? 'Edit Task' : (IS_MANAGER ? 'Assign Task' : 'Add Task');
+
+  const checkboxes = document.querySelectorAll('.dt-assignee-checkbox');
+  const assignedIds = task ? task.assignees.map(a => a.user_id) : [CURRENT_USER_ID];
+  checkboxes.forEach(cb => { cb.checked = assignedIds.includes(parseInt(cb.value)); });
+
+  $('#dailyTaskModal').modal('show');
+}
+
+async function saveTask() {
+  const id = document.getElementById('dt-id').value;
+  const detail = document.getElementById('dt-detail').value.trim();
+  if (!detail) { toast('Please enter a task description', 'danger'); return; }
+
+  const payload = {
+    title: document.getElementById('dt-title').value.trim(),
+    detail,
+    priority: document.getElementById('dt-priority').value,
+    due_date: document.getElementById('dt-due').value || null,
+  };
+  const checkboxes = document.querySelectorAll('.dt-assignee-checkbox');
+  if (checkboxes.length) {
+    const ids = Array.from(checkboxes).filter(cb => cb.checked).map(cb => parseInt(cb.value));
+    if (!ids.length) { toast('Please select at least one staff member', 'danger'); return; }
+    payload.assigned_to_ids = ids;
+  }
+
+  try {
+    if (id) {
+      await apiFetch('/api/daily-tasks/' + id, { method: 'PUT', body: JSON.stringify(payload) });
+      toast('Task updated', 'success');
+    } else {
+      await apiFetch('/api/daily-tasks', { method: 'POST', body: JSON.stringify(payload) });
+      toast('Task assigned', 'success');
+    }
+    $('#dailyTaskModal').modal('hide');
+    loadTasks(); loadSummary();
+  } catch (e) { toast(e.message, 'danger'); }
+}
+
+async function deleteTask(id, fromDetail) {
+  if (!confirm('Delete this task? This cannot be undone.')) return;
+  try {
+    await apiFetch('/api/daily-tasks/' + id, { method: 'DELETE' });
+    toast('Task deleted', 'success');
+    if (fromDetail) $('#dailyTaskDetailModal').modal('hide');
+    loadTasks(); loadSummary();
+  } catch (e) { toast(e.message, 'danger'); }
+}
+
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function initials(name) { return (name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?'; }
+function esc(s) { return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = 'dt-toast ' + type;
+  el.textContent = msg;
+  document.getElementById('dt-toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+</script>
+{% endblock %}

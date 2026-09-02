@@ -1,0 +1,800 @@
+<style>
+  /* ID Card Modal Styles */
+  .id-card-modal .modal-dialog {
+    max-width: 420px;
+    margin: 1.75rem auto;
+  }
+
+  .id-card-modal .modal-content {
+    border: none;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+  }
+
+  .id-card-modal .modal-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white;
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+  }
+
+  .id-card-modal .modal-header .modal-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .id-card-modal .modal-header .close {
+    color: white;
+    text-shadow: none;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+
+  .id-card-modal .modal-header .close:hover {
+    opacity: 1;
+  }
+
+  .id-card-modal .modal-body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem;
+  }
+
+  .id-card-modal .modal-footer {
+    background: white;
+    border-top: 1px solid #e9ecef;
+    padding: 0.75rem 1.5rem;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  /* ID Card Styles */
+  .id-card {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+
+  .id-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .id-card-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+    padding: 1.25rem 1rem;
+    text-align: center;
+    position: relative;
+  }
+
+  .company-name {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin: 0;
+    color: #ffffff;
+    text-transform: uppercase;
+  }
+
+  .company-name i {
+    font-size: 1.1rem;
+    margin-right: 6px;
+  }
+
+  .company-tagline {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin-top: 5px;
+    letter-spacing: 0.5px;
+  }
+
+  .card-type-badge {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: white;
+    backdrop-filter: blur(4px);
+  }
+
+  .id-card-body {
+    padding: 1.5rem 1.25rem 1.25rem;
+  }
+
+  .photo-section {
+    text-align: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .user-photo-wrapper {
+    display: inline-block;
+    position: relative;
+  }
+
+  .user-photo-img {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #f39c12;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .photo-fallback {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: white;
+  }
+
+  .user-name-section {
+    text-align: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .user-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 5px 0;
+  }
+
+  .user-name small {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #f39c12;
+  }
+
+  .username-handle {
+    font-size: 0.7rem;
+    color: #6c757d;
+    margin-top: 4px;
+  }
+
+  .info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .info-icon {
+    width: 28px;
+    height: 28px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .info-icon i {
+    font-size: 14px;
+    color: #f39c12;
+  }
+
+  .info-content {
+    flex: 1;
+  }
+
+  .info-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .info-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2c3e50;
+    word-break: break-word;
+  }
+
+  .role-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    margin-left: 6px;
+  }
+
+  .status-active {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  .id-card-footer {
+    background: #f8f9fa;
+    padding: 0.75rem 1.25rem;
+    text-align: center;
+    border-top: 1px solid #e9ecef;
+  }
+
+  .validity-text {
+    font-size: 0.6rem;
+    color: #6c757d;
+    margin: 0;
+  }
+
+  .validity-text i {
+    margin-right: 4px;
+  }
+
+  .watermark-logo {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    opacity: 0.08;
+    pointer-events: none;
+  }
+
+  .watermark-logo img {
+    width: 80px;
+    height: auto;
+  }
+
+  .btn-print-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .btn-print-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    color: white;
+  }
+
+  .loading-spinner {
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .loading-spinner i {
+    font-size: 2rem;
+    color: #f39c12;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 576px) {
+    .id-card-modal .modal-dialog {
+      margin: 0.5rem;
+      max-width: calc(100% - 1rem);
+    }
+    
+    .id-card-modal .modal-body {
+      padding: 1rem;
+    }
+    
+    .id-card {
+      max-width: 100%;
+    }
+    
+    .user-photo-img,
+    .photo-fallback {
+      width: 90px;
+      height: 90px;
+    }
+    
+    .user-name {
+      font-size: 1rem;
+    }
+  }
+
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    
+    .id-card-print-container,
+    .id-card-print-container * {
+      visibility: visible;
+    }
+    
+    .id-card-print-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: white;
+    }
+    
+    .id-card {
+      box-shadow: none;
+      border: 1px solid #ddd;
+      margin: 0 auto;
+    }
+    
+    .btn-print-card,
+    .modal-header,
+    .modal-footer {
+      display: none !important;
+    }
+  }
+</style>
+
+<!-- ID Card Modal -->
+<div class="modal fade id-card-modal" id="idcard_modal" tabindex="-1" aria-labelledby="idCardModalScrollableTitle" aria-hidden="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="idCardModalScrollableTitle">
+          <i class="ri-id-card-line mr-2"></i>Employee Identification Card
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="id-card-container">
+          <!-- Loading State -->
+          <div class="loading-spinner" id="id-card-loading">
+            <i class="ri-loader-4-line"></i>
+            <p class="mt-2 text-white">Loading employee data...</p>
+          </div>
+          
+          <!-- ID Card will be injected here dynamically -->
+          <div id="id-card-content" style="display: none;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+          <i class="ri-close-line mr-1"></i> Close
+        </button>
+        <button type="button" class="btn-print-card btn-sm" id="print-id-btn" style="display: none;" onclick="printIDCard()">
+          <i class="ri-printer-line mr-1"></i> Download / Print
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Store current user data globally
+  let currentUserData = null;
+
+  // Function to fetch user data from API
+  async function fetchUserData(userId) {
+    try {
+      // const response = await fetch(`/api/users/${userId}`);
+      const response = await fetch(`/api/users/me`); // Fetch current logged-in user data
+      const data = await response.json();
+      
+      if (data.success && data.user) {
+        currentUserData = data.user;
+        renderIDCard(currentUserData);
+        return currentUserData;
+      } else {
+        throw new Error('Failed to fetch user data');
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      showError('Unable to load employee data. Please try again.');
+      return null;
+    }
+  }
+
+  // Function to get initials for avatar fallback
+  function getInitials(name, username) {
+    if (name && name.trim()) {
+      const parts = name.trim().split(' ');
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return name.substring(0, 2).toUpperCase();
+    }
+    if (username) {
+      return username.substring(0, 2).toUpperCase();
+    }
+    return 'ST';
+  }
+
+  // Function to format date
+  function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  // Function to get formatted staff ID
+  function getStaffId(user) {
+    if (user.staff_id) return user.staff_id;
+    if (user.id) return `DTS-${String(user.id).padStart(4, '0')}`;
+    return 'DTS-0001';
+  }
+
+  // Function to get user display name
+  function getDisplayName(user) {
+    if (user.name && user.name.trim()) return user.name.trim();
+    if (user.full_name && user.full_name.trim()) return user.full_name.trim();
+    return user.username || 'Staff Member';
+  }
+
+  // Function to get role display
+  function getRoleDisplay(user) {
+    if (user.staff_role) return user.staff_role;
+    if (user.job_role) return user.job_role;
+    if (user.designation) return user.designation;
+    return 'Staff Member';
+  }
+
+  // Function to get department
+  function getDepartment(user) {
+    if (user.department) return user.department;
+    if (user.category) return user.category;
+    return 'Operations';
+  }
+
+  // Function to render ID card
+  function renderIDCard(user) {
+    const container = document.getElementById('id-card-content');
+    const loadingEl = document.getElementById('id-card-loading');
+    const printBtn = document.getElementById('print-id-btn');
+    
+    if (!user) {
+      showError('No user data available');
+      return;
+    }
+    
+    const displayName = getDisplayName(user);
+    const initials = getInitials(user.name, user.username);
+    const staffId = getStaffId(user);
+    const role = getRoleDisplay(user);
+    const department = getDepartment(user);
+    const joinYear = user.created ? new Date(user.created).getFullYear() : '2024';
+    const isActive = user.status === true || user.online === true;
+    const photoUrl = user.photo ? user.photo : null;
+    
+    // Generate photo HTML
+    let photoHtml = '';
+    if (photoUrl) {
+      photoHtml = `<img src="${photoUrl}" alt="Employee Photo" class="user-photo-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'photo-fallback\'>${initials}</div>'">`;
+    } else {
+      photoHtml = `<div class="photo-fallback">${initials}</div>`;
+    }
+    
+    // Generate role badges HTML
+
+    const roleBadgesHtml = `<span class="badge bg-small">${role}</span>`;
+    
+    // Generate email/phone info
+    let contactInfo = '';
+    if (user.phone) {
+      contactInfo += `<div class="info-row">
+        <div class="info-icon"><i class="ri-phone-line"></i></div>
+        <div class="info-content">
+          <div class="info-label">Phone Number</div>
+          <div class="info-value">${escapeHtml(user.phone)}</div>
+        </div>
+      </div>`;
+    }
+    
+    // Generate the complete ID card HTML
+    const cardHtml = `
+      <div class="id-card" id="employee-id-card">
+        <div class="id-card-header">
+          <div class="card-type-badge">
+            <i class="ri-shield-star-line"></i> STAFF ID
+          </div>
+          <h3 class="company-name">
+            <i class="ri-building-line"></i> DUNIS TECH LTD
+          </h3>
+          <div class="company-tagline">Technology & Innovation | Est. 2015</div>
+        </div>
+        
+        <div class="id-card-body">
+          <div class="photo-section">
+            <div class="user-photo-wrapper">
+              ${photoHtml}
+            </div>
+          </div>
+          
+          <div class="user-name-section">
+            <div class="user-name">
+              ${escapeHtml(displayName)}
+              <span class="badge ${isActive ? 'badge-warning' : 'badge-secondary'}" style="display: inline-block;">
+                <i class="ri-${isActive ? 'checkbox-circle' : 'close-circle'}-line"></i>
+                ${isActive ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+          </div>
+          
+          <div class="info-grid">
+            <div class="info-row">
+              <div class="info-icon"><i class="ri-id-card-line"></i></div>
+              <div class="info-content">
+                <div class="info-label">Staff ID Number</div>
+                <div class="info-value">${escapeHtml(staffId)}</div>
+              </div>
+            </div>
+            
+            <div class="info-row">
+              <div class="info-icon"><i class="ri-briefcase-line"></i></div>
+              <div class="info-content">
+                <div class="info-label">Designation / Role</div>
+                <div class="info-value badge badge-warning">${roleBadgesHtml}</div>
+              </div>
+            </div>
+            
+            <div class="info-row">
+              <div class="info-icon"><i class="ri-group-line"></i></div>
+              <div class="info-content">
+                <div class="info-label">Department / Unit</div>
+                <div class="info-value">${escapeHtml(department)}</div>
+              </div>
+            </div>
+            
+            ${contactInfo}
+            
+            <div class="info-row">
+              <div class="info-icon"><i class="ri-calendar-line"></i></div>
+              <div class="info-content">
+                <div class="info-label">Member Since</div>
+                <div class="info-value">${formatDate(user.created)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="id-card-footer">
+          <p class="validity-text">
+            <i class="ri-checkbox-circle-line"></i> Authorized Personnel
+            <span style="margin: 0 5px">•</span>
+            <i class="ri-qr-code-line"></i> ${escapeHtml(staffId)}
+          </p>
+        </div>
+        
+        <div class="watermark-logo">
+          <img id="id-logo" 
+            src="{{ url_for('static', filename='images/logo/dunistech_academy.png') }}"
+            alt="Logo"
+            onerror="this.style.display='none'">
+        </div>
+      </div>
+    `;
+    
+    // Update the DOM
+    container.innerHTML = cardHtml;
+    loadingEl.style.display = 'none';
+    container.style.display = 'block';
+    printBtn.style.display = 'inline-flex';
+    
+    // Handle image loading errors for photo
+    const photoImg = container.querySelector('.user-photo-img');
+    if (photoImg) {
+      photoImg.addEventListener('error', function() {
+        const wrapper = this.parentElement;
+        const initials = getInitials(user.name, user.username);
+        wrapper.innerHTML = `<div class="photo-fallback">${initials}</div>`;
+      });
+    }
+  }
+
+  // Function to show error message
+  function showError(message) {
+    const container = document.getElementById('id-card-content');
+    const loadingEl = document.getElementById('id-card-loading');
+    container.innerHTML = `
+      <div class="text-center text-white">
+        <i class="ri-error-warning-line" style="font-size: 2rem;"></i>
+        <p class="mt-2">${escapeHtml(message)}</p>
+        <button class="btn btn-sm btn-light mt-2" onclick="retryLoadUser()">
+          <i class="ri-refresh-line"></i> Retry
+        </button>
+      </div>
+    `;
+    loadingEl.style.display = 'none';
+    container.style.display = 'block';
+  }
+
+  // Function to retry loading user
+  function retryLoadUser() {
+    const userId = document.getElementById('idcard_modal').getAttribute('data-user-id');
+    if (userId) {
+      document.getElementById('id-card-loading').style.display = 'flex';
+      document.getElementById('id-card-content').style.display = 'none';
+      document.getElementById('print-id-btn').style.display = 'none';
+      fetchUserData(userId);
+    }
+  }
+
+  // Professional Print Function
+  function printIDCard() {
+    if (!currentUserData) {
+      console.error('No user data available for printing');
+      return;
+    }
+    
+    const cardElement = document.getElementById('employee-id-card');
+    if (!cardElement) {
+      console.error('ID card element not found');
+      return;
+    }
+    
+    const cardHTML = cardElement.outerHTML;
+    const userName = getDisplayName(currentUserData);
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>ID Card - ${escapeHtml(userName)} | Dunis Tech LTD</title>
+        <meta charset="UTF-8">
+        <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: #e9ecef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+          }
+          
+          .id-card-print-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+          }
+          
+          /* Copy all styles from above */
+          ${document.querySelector('style').innerHTML}
+          
+          .id-card {
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+          }
+          
+          @media print {
+            body {
+              background: white;
+              padding: 0;
+              margin: 0;
+            }
+            .id-card {
+              box-shadow: none;
+              border: 1px solid #ddd;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="id-card-print-wrapper">
+          ${cardHTML}
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 1000);
+            }, 200);
+          }
+        <\/script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
+
+  // Function to open modal with user data
+  function openIDCardModal(userId) {
+    const modal = document.getElementById('idcard_modal');
+    modal.setAttribute('data-user-id', userId);
+    
+    // Reset modal content to loading state
+    document.getElementById('id-card-loading').style.display = 'flex';
+    document.getElementById('id-card-content').style.display = 'none';
+    document.getElementById('print-id-btn').style.display = 'none';
+    
+    // Show modal
+    $(modal).modal('show');
+    
+    // Fetch and load user data
+    fetchUserData(userId);
+  }
+
+  // Function to open modal with existing user data (for current logged-in user)
+  function openCurrentUserIDCard() {
+    // This would typically get the current user ID from session
+    // You can modify this based on your application's authentication
+    const currentUserId = {{ current_user.id|default(3) }};
+    openIDCardModal(currentUserId);
+  }
+
+  // Helper function to escape HTML
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // Initialize when document is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle modal close to reset state
+    $('#idcard_modal').on('hidden.bs.modal', function() {
+      document.getElementById('id-card-loading').style.display = 'flex';
+      document.getElementById('id-card-content').style.display = 'none';
+      document.getElementById('print-id-btn').style.display = 'none';
+      currentUserData = null;
+    });
+  });
+
+  // Expose functions globally
+  window.openIDCardModal = openIDCardModal;
+  window.openCurrentUserIDCard = openCurrentUserIDCard;
+  window.printIDCard = printIDCard;
+  window.retryLoadUser = retryLoadUser;
+</script>
+
+

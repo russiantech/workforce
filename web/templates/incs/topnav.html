@@ -1,135 +1,558 @@
+<!--
+    <!DOCTYPE html>
+
+  =========================================================
+  * Top Navbar Component - Dunis Workforce
+  * Bootstrap 4 Compatible | Notifications v3 (Final)
+  * =========================================================
+  * FIXES:
+  * - Single scrollbar (only inside notification list, no double scroll)
+  * - Dropdown positioned tight under topnav (same as profile dropdown)
+  * - Uses iq-sub-dropdown class for consistent behavior
+  * - No nav stretching, proper z-index
+  =========================================================
+-->
 <div class="iq-top-navbar">
     <div class="iq-navbar-custom">
         <nav class="navbar navbar-expand-lg navbar-light p-0">
-            <div class="container-fluid" style="display:inline-masonry">
-            <div class="iq-navbar-logo d-flex align-items-center justify-content-between" style="cursor:pointer">
-                <i class="ri-menu-line wrapper-menu curor-pointer"></i>
-                <a href="/" class="header-logo">
-                    <img src="{{url_for('static', filename=config['LOGO']['main_logo'])}}" class="img-fluid rounded-normal" alt="logo">
-                    <h5 class="logo-title ml-3 mr-3">Dunis Workforce</h5>
-                </a>
+            <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap">
+                <!-- Logo + Left side buttons (Revert / New User) -->
+                <div class="iq-navbar-logo d-flex align-items-center justify-content-between" style="cursor:pointer">
+                    <i class="ri-menu-line wrapper-menu curor-pointer"></i>
+                    <a href="/" class="header-logo d-flex align-items-center">
+                        <img src="{{url_for('static', filename=config['LOGO']['main_logo'])}}" class="img-fluid rounded-normal" alt="logo" style="max-height: 40px;">
+                        <h5 class="logo-title ml-3 mr-3 mb-0">Dunis Workforce</h5>
+                    </a>
 
-                {% if "original_user_id" in session %}
-                <button type="button" data-user-id="null" data-action="revert"
-                class="badge bg-warning mr-2 border-0 impersonate" data-toggle="tooltip"
-                data-placement="top" title="click to revert back to your account." data-original-title="">
-                <i class="ri-user-line mr-0"></i> Revert to your account <!-- Changed icon to better reflect impersonation -->
-                </button>
-                {% endif %}
-                
-                {% if current_user|has_role(['hr', 'admin', 'dev']) %} 
-                <a href="{{url_for('auth.signup')}}" 
-                    class="badge bg-warning mr-2 border-0 d-block" data-toggle="tooltip"
-                    data-placement="top" title="Click here to register a new user" data-original-title="">
-                    <i class="ri-user-line mr-2"></i> New User
-                </a>
-                {% endif %}
-
-            <!-- Revert Button -->
-            </div>
-            
-            <div class="d-flex align-items-center">
-
-                <button class="navbar-toggler" type="button" data-toggle="collapse"
-                    data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                    aria-label="Toggle navigation">
-                    <i class="ri-menu-3-line"></i>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav ml-auto navbar-list align-items-center">
-                       
-                        <li class="nav-item nav-icon dropdown">
-                            <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-bell">
-                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                                </svg>
-                                <span id="notification-count" class="badge badge-warning">0</span>
-                            </a>
-                            <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                <div class="card shadow-none m-0" id="notification-dropdown">
-                                    <div class="card-body p-0 ">
-                                        <div class="cust-title p-3">
-                                            <div class="d-flex align-items-center justify-content-between" id="notification-badge">
-                                                <h5 class="mb-0">Notifications</h5>
-                                                <a id="notification-count" class="badge badge-warning badge-card notification-count" href="#">0</a>
-                                            </div>
-                                        </div>
-                                        <div class="px-3 pt-0 pb-0 sub-card " id="notification-list">
-                                            
-                                            {#<a href="#" class="iq-sub-card">
-                                                <div class="media align-items-center cust-card py-3 border-bottom">
-                                                    <div class="">
-                                                        <img class="avatar-50 rounded-small"
-                                                            src="{{url_for('static', filename='images/user/'~ current_user.photo|string or '1.png' )}}"
-                                                            alt="{{current_user.username}}">
-                                                    </div>
-                                                    <div class="media-body ml-3">
-                                                        <div class="d-flex align-items-center justify-content-between">
-                                                            <h6 class="mb-0">Developer</h6>
-                                                            <small class="text-dark"><b>12 : 47 pm</b></small>
-                                                        </div>
-                                                        <small class="mb-0">@hacker's account</small>
-                                                    </div>
-                                                </div>
-                                            </a> #}
-
-                                        </div>
-                                        <br>
-                                        <button class="right-ic btn disabled btn-primary btn-block position-relative p-2" 
-                                        role="button"> close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-
-                        <li class="nav-item nav-icon dropdown caption-content">
-
-                            {% set user_photo = current_user.photo if current_user.photo else '1.png' %}
-
-                            <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <img src="{{url_for('static', filename='images/user/'~ user_photo)}}" class="img-fluid rounded" alt="{{current_user.username}}">
-                            </a>
-                            <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                <div class="card shadow-none m-0">
-                                    <div class="card-body p-0 text-center">
-                                        <div class="media-body profile-detail text-center">
-
-                                            <img src="{{url_for('static', filename='images/user/'~ current_user.photo|string or '1.png' )}}" alt="{{current_user.username}}"
-                                                class="rounded profile-img img-fluid avatar-70 mb-4">
-                                        </div>
-                                        <div class="p-3">
-                                            <h5 class="mb-1"> {{current_user.email or current_user.phone or current_user.username}} </h5>
-                                            <!-- <p class="mb-0">Since 10 march, 2020</p> -->
-                                            <p class="mb-0">{% if current_user.is_authenticated %} {{ moment(current_user.created).fromNow() }} {% endif %} </p>
-                                            <div class="d-flex align-items-center justify-content-center mt-3">
-                                                <a href="{{url_for('auth.update', username=current_user.username)}}" class="btn border mr-2">Profile</a>
-                                                <a href="{{url_for('auth.signout')}}" class="btn border">Log-out</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-
-                    </ul>
-
+                    {% if "original_user_id" in session %}
+                    <button type="button" data-user-id="null" data-action="revert"
+                        class="badge bg-warning mr-2 border-0 impersonate btn-sm" data-toggle="tooltip"
+                        data-placement="top" title="click to revert back to your account.">
+                        <i class="ri-user-line mr-0"></i> Revert
+                    </button>
+                    {% endif %}
+                    
+                    {% if current_user|has_role(['hr', 'admin', 'dev', 'md']) %} 
+                    <a href="{{url_for('auth.signup')}}" 
+                        class="badge bg-warning mr-2 border-0 d-inline-block btn-sm" data-toggle="tooltip"
+                        data-placement="top" title="Click here to register a new user">
+                        <i class="ri-user-line mr-2"></i> New User
+                    </a>
+                    {% endif %}
                 </div>
-            </div>
+                
+                <!-- Right side: notifications + user profile -->
+                <div class="d-flex align-items-center">
+                    <!-- NOTIFICATION DROPDOWN - using iq-sub-dropdown, positioned tight -->
+                    <li class="nav-item nav-icon dropdown" style="list-style: none; position: relative;">
+                        <!--<a href="#" class="search-toggle dropdown-toggle" id="notificationDropdownLink"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="position: relative;">
+                            <i class="ri-notification-3-line" style="font-size: 1.3rem;"></i>
+                            <span id="notifBadge" class="badge badge-warning" style="display: none">0</span>
+                        </a>-->
+
+                        <a href="#" class="dropdown-toggle" id="notificationDropdownLink"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fa fa-bell fs-5"></i>
+                                <span id="notifBadge" class="badge badge-warning" style="display:none">0</span>
+                            </a>
+                        
+                        <div class="iq-sub-dropdown dropdown-menu dropdown-menu-right" aria-labelledby="notificationDropdownLink" style="position: absolute; top: 100%; right: 0; left: auto; margin-top: 0.5rem;">
+                            <div class="card shadow-none m-0" id="notification-dropdown" style="border: none;">
+                                <div class="card-body p-0">
+                                    <div class="cust-title p-3 border-bottom">
+                                        <div class="d-flex align-items-center justify-content-between" id="notification-badge">
+                                            <h5 class="mb-0" style="font-size: 1rem;">Notifications</h5>
+                                            <a href="#" class="small text-warning font-weight-bold" id="markAllReadBtn" onclick="markAllRead(); return false;">Mark all read</a>
+                                        </div>
+                                    </div>
+                                    <!-- Single scrollbar only inside this container -->
+                                    <div id="notifList" style="max-height: 360px; overflow-y: auto; overflow-x: hidden;">
+                                        <div class="text-center text-muted p-4 small">Loading notifications...</div>
+                                    </div>
+                                    <div class="p-2 border-top text-center">
+                                        <button class="btn btn-sm btn-link text-secondary close-notif-btn" data-dismiss="dropdown" aria-label="Close">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- Navbar toggler for mobile -->
+                    <button class="navbar-toggler ml-2" type="button" data-toggle="collapse"
+                        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-label="Toggle navigation">
+                        <i class="ri-menu-3-line"></i>
+                    </button>
+                    
+                    <!-- Collapsible menu (user dropdown) -->
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ml-auto navbar-list align-items-center">
+                            <!-- User Profile Dropdown (reference - works correctly, positioned tight) -->
+                            <li class="nav-item nav-icon dropdown caption-content">
+                                {% set user_photo = current_user.photo if current_user.photo else '1.png' %}
+                                <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img src="{{current_user.photo or url_for('static', filename='images/logo/favicon.png')}}" 
+                                        class="img-fluid rounded-circle" alt="{{current_user.username}}" 
+                                        style="width: 38px; height: 38px; object-fit: cover;">
+                                </a>
+                                <div class="iq-sub-dropdown dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton4" style="position: absolute; top: 100%; right: 0; left: auto; margin-top: 0.5rem;">
+                                    <div class="card shadow-none m-0 border-0">
+                                        <div class="card-body p-0 text-center">
+                                            <div class="media-body profile-detail text-center pt-3">
+                                                <img src="{{current_user.photo or url_for('static', filename='images/logo/favicon.png')}}" 
+                                                     alt="{{current_user.username}}"
+                                                     class="rounded-circle img-fluid avatar-70 mb-3" style="width: 70px; height: 70px; object-fit: cover;">
+                                                <h5 class="mb-1 px-2" style="font-size: 0.95rem;">
+                                                    {{current_user.email or current_user.phone or current_user.username}} 
+                                                    <span class="badge badge-danger badge-pill mt-1">
+                                                        {{current_user.my_roles}}
+                                                    </span>
+                                                </h5>
+                                                <p class="mb-0 text-muted small">{% if current_user.is_authenticated %} {{ moment(current_user.created).fromNow() }} {% endif %}</p>
+                                            </div>
+                                            <div class="p-3 border-top mt-2">
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <a href="{{url_for('auth.update', username=current_user.username)}}" class="btn btn-outline-primary btn-sm mr-2">Profile</a>
+                                                    <a href="{{url_for('auth.signout')}}" class="btn btn-outline-danger btn-sm">Log-out</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </nav>
     </div>
 </div>
 
-<!-------------------------->
-<!-- Modal for displaying file content -->
-<div id="fileModal" class="modal">
-    <div class="modal-content align-items-center">
-        <span class="close">&times;</span>
-        <iframe id="fileViewer" src="" style="width: 80%; height: 100%; border: none;"></iframe>
+<!-- Modal for displaying file content (kept from original) -->
+<div id="fileModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">File Preview</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="fileViewer" src="" style="width: 100%; height: 70vh; border: none;"></iframe>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- JavaScript for Notifications -->
+<script>
+    // Helper to escape HTML (prevent XSS)
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Load notifications from API endpoint
+    async function loadNotifications() {
+        try {
+            const response = await fetch('/api/v2/notifications', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (!response.ok) throw new Error('Failed to fetch notifications');
+            const data = await response.json();
+            
+            // Update badge
+            const badgeElement = document.getElementById('notifBadge');
+            const unreadCount = data.unread || 0;
+            if (unreadCount > 0) {
+                badgeElement.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                badgeElement.style.display = 'inline-block';
+            } else {
+                badgeElement.style.display = 'none';
+            }
+            
+            // Build notifications list - no extra wrapper to avoid double scroll
+            const notifContainer = document.getElementById('notifList');
+            const notifications = data.notifications || [];
+            
+            if (notifications.length === 0) {
+                notifContainer.innerHTML = '<div class="text-center text-muted p-4 small">✨ All caught up! No new notifications.</div>';
+                return;
+            }
+            
+            let html = '';
+            for (let n of notifications) {
+                const isUnread = !n.is_read;
+                const timeStr = n.created ? n.created.slice(0, 16).replace('T', ' ') : '';
+                const targetPath = n.path && n.path.startsWith('/') ? n.path : (n.path || '#');
+                html += `
+                    <a href="${targetPath}" class="iq-sub-card d-block" style="text-decoration: none; border-left: 3px solid ${isUnread ? '#ffc107' : 'transparent'}; ${isUnread ? 'background-color: #fffef7;' : ''} cursor: pointer;">
+                        <div class="media align-items-center cust-card py-3 px-3 border-bottom">
+                            <div class="media-body ml-0">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h6 class="mb-0 ${isUnread ? 'font-weight-bold' : ''}" style="font-size: 0.85rem;">${escapeHtml(n.title) || 'Notification'}</h6>
+                                    <small class="text-muted" style="font-size: 0.65rem;">${escapeHtml(timeStr)}</small>
+                                </div>
+                                <small class="mb-0 text-muted" style="font-size: 0.73rem; display: block; margin-top: 5px; line-height: 1.3;">${escapeHtml(n.message) || ''}</small>
+                                ${!n.is_read ? '<span class="badge badge-warning badge-pill mt-1" style="font-size: 0.6rem; padding: 0.2rem 0.5rem;">New</span>' : ''}
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }
+            notifContainer.innerHTML = html;
+        } catch (error) {
+            console.error('Notification load error:', error);
+            const notifContainer = document.getElementById('notifList');
+            if (notifContainer) {
+                notifContainer.innerHTML = '<div class="alert alert-danger m-3 text-center small">⚠️ Unable to load notifications. Please refresh.</div>';
+            }
+        }
+    }
+    
+    // Mark all notifications as read
+    async function markAllRead() {
+        try {
+            const response = await fetch('/api/v2/notifications/read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ ids: [] })
+            });
+            if (response.ok) {
+                await loadNotifications();
+                const badge = document.getElementById('notifBadge');
+                if (badge) badge.style.display = 'none';
+            } else {
+                console.warn('Mark all read failed');
+            }
+        } catch (err) {
+            console.error('Error marking all read:', err);
+        }
+    }
+    
+    // Setup polling and initial load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadNotifications();
+        if (window.notifInterval) clearInterval(window.notifInterval);
+        window.notifInterval = setInterval(loadNotifications, 30000);
+        
+        // Mark all read button
+        const markAllBtn = document.getElementById('markAllReadBtn');
+        if (markAllBtn) {
+            markAllBtn.removeEventListener('click', markAllRead);
+            markAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                markAllRead();
+            });
+        }
+        
+        // Close modal properly
+        $('#fileModal').on('hidden.bs.modal', function () {
+            $('#fileViewer').attr('src', '');
+        });
+        
+        // Close notification dropdown when clicking close button
+        const closeBtn = document.querySelector('.close-notif-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function(e) {
+                const dropdownToggle = document.querySelector('#notificationDropdownLink');
+                if (dropdownToggle && dropdownToggle.getAttribute('aria-expanded') === 'true') {
+                    $(dropdownToggle).dropdown('toggle');
+                }
+            });
+        }
+    });
+    
+    window.markAllRead = markAllRead;
+    window.loadNotifications = loadNotifications;
+</script>
+
+<style>
+    /* ========== CRITICAL FIXES ========== */
+    /* 1. No double scrollbar - only notifList has scroll, dropdown itself doesn't */
+    .iq-sub-dropdown.dropdown-menu {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    
+    /* 2. Positioned tight under topnav - same as profile dropdown */
+    .iq-sub-dropdown.dropdown-menu {
+        position: absolute;
+        top: 100% !important;
+        right: 0;
+        left: auto;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0;
+        transform: none !important;
+        z-index: 1050;
+    }
+    
+    /* Ensure dropdown appears right below the bell icon */
+    .nav-item.nav-icon.dropdown {
+        position: relative;
+    }
+    
+    /* 3. Notification list - single scrollbar only here */
+    #notifList {
+        max-height: 360px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    
+    /* Hide scrollbar on dropdown itself to prevent double scroll */
+    .iq-sub-dropdown.dropdown-menu {
+        overflow-y: visible;
+    }
+    
+    /* Custom scrollbar styling (optional, looks better) */
+    #notifList::-webkit-scrollbar {
+        width: 5px;
+    }
+    
+    #notifList::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    #notifList::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+    
+    #notifList::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+    
+    /* ========== STYLES MATCHING PROFILE DROPDOWN ========== */
+    .iq-sub-dropdown {
+        min-width: 340px;
+        padding: 0;
+        background-color: #fff;
+        border: 0;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Card inside dropdown */
+    .iq-sub-dropdown .card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    /* Notification items styling */
+    .iq-sub-card {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .iq-sub-card:hover {
+        background-color: #f8f9fa !important;
+    }
+    
+    .cust-card {
+        padding: 0.75rem 0;
+    }
+    
+    .cust-card .media-body h6 {
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Badge styling */
+    .badge-warning {
+        background-color: #ffc107;
+        color: #212529;
+        font-size: 0.65rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 30px;
+    }
+    
+    /* Bell icon badge */
+    #notifBadge {
+        position: absolute;
+        top: -8px;
+        right: -12px;
+        font-size: 9px;
+        padding: 0.2rem 0.4rem;
+        border-radius: 50%;
+        background-color: #ffc107;
+        color: #212529;
+        border: 1px solid white;
+        font-weight: bold;
+        line-height: 1;
+    }
+    
+    /* Navbar styling */
+    .iq-top-navbar .navbar {
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        padding: 0.75rem 1rem;
+        border-radius: 0;
+    }
+    
+    .iq-navbar-logo .header-logo img {
+        max-height: 38px;
+        width: auto;
+    }
+    
+    .iq-navbar-logo .logo-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .badge.bg-warning {
+        background-color: #ffc107;
+        color: #212529;
+        font-size: 0.7rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 20px;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+    
+    .badge.bg-warning:hover {
+        background-color: #e0a800;
+        color: #1e1e2f;
+    }
+    
+    .wrapper-menu {
+        font-size: 1.3rem;
+        margin-right: 12px;
+        cursor: pointer;
+    }
+    
+    /* Profile image */
+    .avatar-70 {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+    
+    /* Responsive */
+    @media (max-width: 767.98px) {
+        .iq-sub-dropdown {
+            min-width: 300px;
+            right: -10px;
+        }
+        .logo-title {
+            font-size: 1rem;
+        }
+        #notifList {
+            max-height: 300px;
+        }
+    }
+    
+    /* Ensure dropdown doesn't cause horizontal scroll */
+    .navbar-nav.ml-auto {
+        flex-direction: row;
+    }
+    
+    .nav-item.nav-icon {
+        margin-left: 0.5rem;
+    }
+    
+    /* Close button styling */
+    .close-notif-btn:hover {
+        text-decoration: underline;
+    }
+    
+    /* Mark all read link */
+    .text-warning {
+        color: #ffc107 !important;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+    
+    .text-warning:hover {
+        text-decoration: underline;
+    }
+    
+    /* Dropdown animation (optional, smooth) */
+    .iq-sub-dropdown {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.15s linear, visibility 0.15s linear;
+    }
+    
+    .iq-sub-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Prevent body scroll when dropdown is open on mobile */
+    @media (max-width: 576px) {
+        .iq-sub-dropdown {
+            position: fixed !important;
+            top: 60px !important;
+            right: 10px !important;
+            left: 10px !important;
+            width: auto !important;
+            max-width: calc(100% - 20px);
+        }
+    }
+</style>
+
+<!-- Ensure Bootstrap 4 JS, jQuery, Popper are available in base template -->
+<script>
+    // File modal preview handler (legacy)
+    document.addEventListener('click', function(e) {
+        let fileLink = e.target.closest('[data-file-url]');
+        if (fileLink) {
+            e.preventDefault();
+            let fileUrl = fileLink.getAttribute('data-file-url');
+            if (fileUrl) {
+                $('#fileViewer').attr('src', fileUrl);
+                $('#fileModal').modal('show');
+            }
+        }
+    });
+    
+    // Legacy support for open-file-preview class
+    const modalTriggers = document.querySelectorAll('.open-file-preview');
+    if (modalTriggers.length) {
+        modalTriggers.forEach(trigger => {
+            trigger.addEventListener('click', function(ev) {
+                ev.preventDefault();
+                const targetUrl = this.getAttribute('href') || this.getAttribute('data-url');
+                if (targetUrl) {
+                    $('#fileViewer').attr('src', targetUrl);
+                    $('#fileModal').modal('show');
+                }
+            });
+        });
+    }
+    
+    // Ensure dropdown closes when clicking outside (Bootstrap handles this, but just in case)
+    /**
+    It gives this error evertime cos jQuery is'nt loaded yet so far.
+    Uncaught ReferenceError: $ is not defined
+        at attendance/:1349:5
+    */
+    /*
+    $(document).on('click', function(event) {
+        if (!$(event.target).closest('.dropdown').length) {
+            $('.dropdown-menu.show').removeClass('show');
+            $('.dropdown-toggle').attr('aria-expanded', 'false');
+        }
+    });
+    */
+</script>

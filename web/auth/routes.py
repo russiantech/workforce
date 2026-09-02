@@ -6,15 +6,20 @@ import sqlalchemy as sa, traceback
 from sqlalchemy.exc import OperationalError, DatabaseError
 from sqlalchemy import or_
 from web.apis.errors import bad_request
-from web import db, bcrypt, csrf
-from web.models import db, Query, Role, User, Notification
-
-from web.utils import save_image, email, ip_adrs
+from web import bcrypt, csrf
+from web.models import db
+from web.models.users import Query, Role, User
+from web.models import Notification
+from web.utils import save_image
 from web.auth.forms import (QueryForm, SignupForm, SigninForm, UpdateMeForm, ForgotForm, ResetForm)
 from web.utils.decorators import admin_or_current_user, role_required
+from web.utils import email
+from web.utils import ip_adrs
 from web.utils.providers import oauth2providers
 
 from web.utils.db_session_management import db_session_management
+from web.utils.user_role import has_role
+from web import loggings
 
 #oauth implimentations
 import secrets, requests
@@ -27,7 +32,7 @@ def hash_txt(txt):
 
 @auth.route("/signup", methods=['GET', 'POST'])
 @db_session_management
-@role_required('hr', 'admin', 'dev')
+@role_required('hr', 'admin', 'dev', 'md')
 def signup():
     
     # if current_user.is_authenticated:
@@ -35,7 +40,7 @@ def signup():
     
     if current_user.is_authenticated:
         # Allow only users with 'admin' or 'hr' role to access the signup page
-        if not any(role.type in ['admin', 'devops', 'hr', 'dev'] for role in current_user.roles):
+        if not any(role.type in ['admin', 'devops', 'hr', 'dev', 'md'] for role in current_user.roles):
             flash('You do not have permission to create a new account.', 'danger')
             return redirect(url_for('main.index'))
     else:
@@ -84,6 +89,7 @@ def signup():
             return redirect(url_for('auth.signin'))
         
         except Exception as e:
+            current_app.logger.exception(f"Unhandled error in web/auth/routes.py: {e}")
             print(traceback.print_exc())
             db.session.rollback()  # Rollback the transaction to maintain data integrity
             flash(f'User registration failed. {str(e)}', 'danger')
@@ -180,9 +186,12 @@ def oauth2_callback(provider):
 
 @auth.route("/signin", methods=['GET', 'POST'])
 @db_session_management
+@csrf.exempt
 def signin():
 
     try:
+
+        # return jsonify(request.form)
         referrer = request.referrer
         if not current_user.is_anonymous:
             return redirect(url_for('main.index'))
@@ -203,7 +212,7 @@ def signin():
             else: 
                 flash('Invalid Login Details. Try Again', 'danger')
                 return redirect(referrer)
-                #return f"Authentication failed. Reach out to admin regarding this"
+                # return f"Authentication failed. Reach out to admin regarding this"
         return render_template('auth/signin.html', title='Sign In', form=form)
     
     except OperationalError:
@@ -218,6 +227,14 @@ def signin():
         return redirect(referrer)
         # return jsonify({'error': 'A database error occurred. Please contact support.'}), 500
     
+    except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/auth/routes.py: {e}")
+        # Handle other database-related errors
+        # loggings.error(f"{e}")
+        flash('A database error occurred. Please contact support.', 'danger')
+        # return redirect(referrer)
+        return jsonify({'error': f'{e}'})
+    
 @auth.route("/signout")
 @login_required
 @db_session_management
@@ -229,14 +246,12 @@ def signout():
 
 @auth.route("/<string:username>/update", methods=['GET', 'POST'])
 @login_required
-# @role_required('hr', 'admin', 'dev')
-# @admin_or_current_user()
-# @db_session_management
+@role_required('*')
+# @role_required('hr', 'admin', 'dev', 'md')
 def update(username):
     try:
-        from flask import jsonify
         # Check if the current user has the necessary role or if they are accessing their own information
-        if not (any(role.type in ["hr", "dev"] for role in current_user.roles) or current_user.username == username):
+        if not (any(role.type in ["hr", 'md', "dev"] for role in current_user.roles) or current_user.username == username):
             return jsonify({
                 'message': f'Hey! {current_user.name or current_user.username}, you do not have permission to access this user information.',
                 'success': False
@@ -246,24 +261,13 @@ def update(username):
         form = UpdateMeForm()
         query_form = QueryForm()
 
-        """ # Validate critical fields separately
-        if any([form.username.data, form.password.data, form.reg_num.data, form.course.data, 
-                form.completion_status.data, form.cert_status.data]):
-            validation_response = form.validate_critical_fields()
-            if not validation_response == True:
-                return validation_response """
-            
-        # only admins/account-ownr | this is also done by this decorator `@admin_or_current_user()`
-        # if not ( (current_user.is_admin()) | (current_user.username == user.username)):
-        #     return redirect(url_for('auth.update', username = current_user.username))
-
         if user.roles:
             # Get the user's current role
-            current_role = [ (r.id, r.type) for r in user.roles] or [('0', 'Not Granted')]
+            current_role = [ (r.id, r.type) for r in user.roles] or [('0', 'Not Assigned')]
             other_roles = Role.query.filter( ~Role.id.in_(current_role[0]) if current_role[0] else None ).all() 
 
             choices = [ ( x[0], x[1]) for x in current_role] or [('0', 'nothing')] #if current_role else [ '', 'Nothing']
-            choices.extend( (role.id, role.type) for role in other_roles) if current_user.is_admin() else None
+            choices.extend( (role.id, role.type) for role in other_roles) if has_role(current_user, ['admin', 'hr', 'md', 'dev']) else None
             # Set choices for the form's role field
             form.role.choices = choices
         
@@ -271,7 +275,8 @@ def update(username):
 
         if form.validate_on_submit():
              # Check if the current user is an admin
-            if not current_user.is_admin():
+            # if not current_user.is_admin(): # no longer admin only
+            if not (any(role.type in ["hr", 'md', 'admin', "dev"] for role in current_user.roles) ):
                 # Check if any critical fields are being changed
                 if (
                     (form.username.data and form.username.data != user.username) or
@@ -281,8 +286,8 @@ def update(username):
                     (form.completion_status.data and form.completion_status.data != user.completion_status) or
                     (form.cert_status.data and form.cert_status.data != user.cert_status)
                 ):
-                    message = "only admin can update these: (\
-                        password, username, reg no, course, completion status, certificate status.)"
+                    message = "only HR or Admin can update any of\
+                    (password, username, reg no, course, completion status, or certificate status.)"
                     return jsonify({"success": False, "error": str(message)}), 200
             
             with db.session.no_autoflush:
@@ -292,9 +297,15 @@ def update(username):
                     return jsonify({"success": False, "error": str(message) }), 200
             
             if 'photo' in request.files:
-                photo_filename = save_image.save_photo(request.files['photo'])
-                user.photo = photo_filename
-                print("photo file-name", photo_filename)
+                # photo_filename = save_image.save_photo(request.files['photo'])
+                file_input = request.files['photo']
+                photo_url = save_image.save_file(
+                file_input,
+                    'static/images/users',
+                    user.username
+                )
+                user.photo = photo_url
+                print("photo file-name", photo_url)
                 
             user.name = form.name.data
             user.username = form.username.data
@@ -308,10 +319,17 @@ def update(username):
             user.about = form.about.data
             user.password = hash_txt(form.password.data) if form.password.data else user.password
             user.category = form.category.data or 'user'
-            new_role_ids = [form.role.data]  # Assuming the form data provides a list of role IDs
-            new_roles = Role.query.filter(Role.id.in_(new_role_ids) ).all()
-            user.roles = new_roles
+
+            # new_role_ids = [form.role.data]  # Assuming the form data provides a list of role IDs
+            # new_roles = Role.query.filter(Role.id.in_(new_role_ids) ).all()
+            # user.roles = new_roles
             
+            # Only update roles if a valid role was actually selected
+            if form.role.data:
+                new_role_ids = [int(form.role.data)]
+                new_roles = Role.query.filter(Role.id.in_(new_role_ids)).all()
+                user.roles = new_roles
+                
             # Additional fields from UpdateMeForm
             user.designation = form.designation.data
             user.academic_qualification = form.academic_qualification.data
@@ -383,8 +401,11 @@ def update(username):
         return render_template('auth/update.html',  **context)
 
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/auth/routes.py: {e}")
         print(e)
         return jsonify({"success": False, "error": str(e) }), 200
+
+
 
 @auth.route("/forgot", methods=['GET', 'POST'])
 @db_session_management
@@ -413,6 +434,7 @@ def unverified():
         return render_template('auth/unverified.html')
     
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/auth/routes.py: {e}")
         return jsonify({"success": False, "error": f"{e}"})
     
 #->for both verify/reset tokens
@@ -459,6 +481,7 @@ def confirm(token):
             return render_template('auth/reset.html', user=user, form=form)
 
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/auth/routes.py: {e}")
         return jsonify({"success": False, "error": f"{e}"})
     
 @auth.route('/query/<int:user_id>', methods=['POST'])
@@ -480,9 +503,20 @@ def query(user_id):
             file_input = request.files['file_input']
 
             # Specify custom upload path and username
-            saved_filename = save_image.save_file(file_input, './static/images/queries', user.username)
-
-            query = Query(user_id=user.id, file_path=saved_filename, message=request.form.get('message'))
+            # saved_filename = save_image.save_file(file_input, './static/images/queries', user.username)
+            # query = Query(user_id=user.id, file_path=saved_filename, message=request.form.get('message'))
+            # 
+            file_url = save_image.save_file(
+            file_input,
+                'static/images/queries',
+                user.username
+            )
+            saved_filename = file_url.split('/')[-1]  # Extract the filename from the URL
+            query = Query(
+                user_id=user.id,
+                file_path=file_url,  # now full URL
+                message=request.form.get('message')
+            )
             db.session.add(query)
             db.session.commit()
 
@@ -506,6 +540,7 @@ def query(user_id):
 
         return jsonify({"success": False, "error": "File upload failed"}), 400
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/auth/routes.py: {e}")
         return jsonify({"success": False, "error": f"{e}"})
     
 @auth.route('/fetch_notifications', methods=['GET'])
@@ -526,6 +561,7 @@ def fetch_notifications():
         return jsonify({"notifications": notifications_list}), 200
 
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/auth/routes.py: {e}")
         # Handle other database-related errors
         return jsonify({'error': f'{e}'}), 500
     
@@ -543,6 +579,7 @@ def mark_notification_as_read(notification_id):
         else:
             return jsonify({'success': False, 'error': 'Notification not found'}), 404
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/auth/routes.py: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @auth.route('/impersonate', methods=['POST'])
@@ -551,9 +588,9 @@ def mark_notification_as_read(notification_id):
 @csrf.exempt
 def impersonate():
     try:
-        
-        if not current_user.is_admin() and not "original_user_id" in session:
-            return jsonify({'success': False, 'error': "Admin required"})
+        # if not current_user.is_admin() and not "original_user_id" in session:
+        if not any(role.type in ["hr", 'md', "dev"] for role in current_user.roles) and not "original_user_id" in session:
+            return jsonify({'success': False, 'error': "MD or HR Privilege Required to impersonate account"})
         
         data = request.get_json()
         
@@ -582,28 +619,23 @@ def impersonate():
         return jsonify({'success': False, 'error': "Invalid action"})
 
     except Exception as e:
+        current_app.logger.exception(f"Unhandled error in web/auth/routes.py: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 
-@auth.route('/user/<int:user_id>/id-details', methods=['GET'])
-@login_required
-def user_id(user_id):
-    try:
-        user = User.query.get(user_id)
-        if user:
-            return jsonify({
-                'success': True,
-                'user': {
-                    'photo': user.photo,
-                    'name': user.name or ". . .",
-                    'reg_num': user.reg_num,
-                    'course': user.course or ". . .",
-                    'batch': datetime.now().year,  # Assuming batch is a field in your User model
-                    'email': user.email or ". . .",
-                    'phone': user.phone or ". . ."
-                }
-            }), 200
-        else:
-            return jsonify({'success': False, 'error': 'User not found'}), 404
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+# @auth.route('/user/<int:user_id>/id-details', methods=['GET'])
+# @login_required
+# def get_user_details(user_id):
+#     try:
+#         user = User.query.get(user_id)
+#         if not user:
+#             return jsonify({'success': False, 'error': 'User not found'}), 404
+        
+#         if user.deleted:
+#             return jsonify({'success': False, 'error': 'User has been deleted'}), 410
+        
+#         return jsonify({'success': True, 'user': user.get_summary()})
+    
+#     except Exception as e:
+#         return jsonify({'success': False, 'error': str(e)}), 500
+

@@ -1,7 +1,7 @@
 import traceback
 from sqlalchemy.exc import IntegrityError
 from functools import wraps
-from flask import redirect, request, jsonify, url_for
+from flask import redirect, request, jsonify, url_for, current_app
 from web.models import db
 
 def db_session_management(route_function):
@@ -30,6 +30,7 @@ def db_session_management(route_function):
             return jsonify(response)
 
         except Exception as e:
+            current_app.logger.exception(f"Unhandled error in web/utils/db_session_management.py: {e}")
             # Rollback the transaction in case of any other exception
             db.session.rollback()
             referrer = request.headers.get('Referer')

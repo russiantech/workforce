@@ -1,0 +1,1198 @@
+{% extends "base.html" %}
+{% block title %}Roles & Respons{% endblock %}
+
+{% block head_extra %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+:root {
+  --ff:       'Plus Jakarta Sans', system-ui, sans-serif;
+  --ff-mono:  'Plus Jakarta Sans', monospace;
+  --bg:       #f0f2f8;
+  --surface:  #ffffff;
+  --border:   #e2e6f0;
+  --text:     #0f1623;
+  --muted:    #64748b;
+  --subtle:   #94a3b8;
+  --ink:      #1e293b;
+  --primary:  #4f46e5;
+  --primary-d:#1d4ed8;
+  --primary-lt:#eff6ff;
+  --success:  #059669;
+  --warn:     #d97706;
+  --danger:   #dc2626;
+  --radius:   16px;
+  --radius-sm:10px;
+  --shadow:   0 1px 3px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.05);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
+}
+body { background: var(--bg); font-family: var(--ff); color: var(--text); margin: 0; }
+
+/* ── TOP BAR ─────────────────────────────────────────── */
+.r-topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 2rem; height: 62px;
+  display: flex; align-items: center; gap: .75rem;
+  position: relative; z-index: 10;
+}
+.r-topbar-title { font-size: 1rem; font-weight: 700; flex: 1; display: flex; align-items: center; gap: .65rem; }
+.r-topbar-badge {
+  font-size: .65rem; font-family: var(--ff-mono); font-weight: 500;
+  background: var(--primary-lt); color: var(--primary);
+  border: 1px solid #bfdbfe; border-radius: 6px; padding: 2px 8px; letter-spacing: .04em;
+}
+.btn-home {
+  height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--surface); color: var(--muted); cursor: pointer; font-size: .8rem;
+  display: inline-flex; align-items: center; gap: .35rem; padding: 0 .8rem;
+  font-family: var(--ff); font-weight: 500; text-decoration: none;
+  transition: border-color .15s, color .15s;
+}
+.btn-home:hover { border-color: var(--primary); color: var(--primary); text-decoration: none; }
+.btn-primary {
+  height: 36px; border-radius: var(--radius-sm); border: none;
+  background: var(--primary); color: #fff; cursor: pointer; font-size: .82rem;
+  display: inline-flex; align-items: center; gap: .4rem; padding: 0 1rem;
+  font-family: var(--ff); font-weight: 600;
+  transition: background .15s, box-shadow .15s;
+}
+.btn-primary:hover { background: var(--primary-d); box-shadow: 0 4px 16px rgba(37,99,235,.35); }
+.btn-outline {
+  height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--surface); color: var(--ink); cursor: pointer; font-size: .82rem;
+  display: inline-flex; align-items: center; gap: .4rem; padding: 0 .9rem;
+  font-family: var(--ff); font-weight: 500; transition: border-color .15s;
+}
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ── LAYOUT ──────────────────────────────────────────── */
+.r-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr 340px;
+  gap: 0;
+  min-height: calc(100vh - 62px);
+}
+
+/* ── LEFT — SIDEBAR ──────────────────────────────────── */
+.r-sidebar {
+  background: var(--surface); border-right: 1px solid var(--border);
+  padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: .25rem;
+  position: sticky; top: 88px; height: calc(100vh - 88px); overflow-y: auto;
+}
+.r-sidebar-label {
+  font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--subtle); padding: .75rem .6rem .35rem;
+}
+.r-nav-item {
+  display: flex; align-items: center; gap: .6rem; padding: .55rem .75rem;
+  border-radius: var(--radius-sm); cursor: pointer; font-size: .84rem;
+  color: var(--muted); transition: background .12s, color .12s; border: none; background: none;
+  font-family: var(--ff); width: 100%; text-align: left;
+}
+.r-nav-item:hover { background: var(--bg); color: var(--text); }
+.r-nav-item.active { background: var(--primary-lt); color: var(--primary); font-weight: 600; }
+.r-nav-item .badge-count {
+  margin-left: auto; font-size: .68rem; font-family: var(--ff-mono);
+  background: var(--bg); color: var(--muted); padding: 1px 7px; border-radius: 99px; font-weight: 600;
+}
+.r-nav-item.active .badge-count { background: #bfdbfe; color: var(--primary); }
+.r-nav-item.warn-item { color: var(--warn); }
+.r-nav-item.warn-item:hover, .r-nav-item.warn-item.active { background: #fef3c7; color: var(--warn); }
+.r-nav-item.warn-item .badge-count { background: #fef3c7; color: var(--warn); }
+
+/* ── CENTRE — MAIN ───────────────────────────────────── */
+.r-main { padding: 1.75rem 1.5rem; overflow: auto; }
+.r-section-head {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;
+}
+.r-section-head h5 { margin: 0; font-size: .95rem; font-weight: 700; }
+
+/* Search bar */
+.r-search {
+  display: flex; align-items: center; gap: .5rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: .4rem .85rem;
+  transition: border-color .2s, box-shadow .2s; width: 100%; max-width: 320px; margin-bottom: 1.25rem;
+}
+.r-search:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.r-search input { border: none; background: none; outline: none; font-size: .84rem; color: var(--text); font-family: var(--ff); width: 100%; }
+.r-search input::placeholder { color: var(--subtle); }
+
+/* Role cards grid */
+.roles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+
+.role-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; cursor: pointer; transition: box-shadow .2s, transform .15s;
+  position: relative;
+}
+.role-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.role-card.selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+.rc-accent { height: 4px; }
+.rc-body { padding: 1.1rem 1.15rem; }
+.rc-icon-wrap {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+  margin-bottom: .75rem; flex-shrink: 0;
+}
+.rc-title { font-size: .92rem; font-weight: 700; margin-bottom: .2rem; }
+.rc-dept  { font-size: .73rem; color: var(--muted); margin-bottom: .7rem; display: flex; align-items: center; gap: .3rem; }
+.rc-stats { display: flex; gap: .75rem; font-size: .73rem; color: var(--muted); }
+.rc-stat  { display: flex; align-items: center; gap: .25rem; }
+.rc-actions { display: flex; gap: .25rem; position: absolute; top: .7rem; right: .7rem; opacity: 0; transition: opacity .15s; }
+.role-card:hover .rc-actions { opacity: 1; }
+.rc-btn {
+  width: 28px; height: 28px; border-radius: 7px; border: none; background: rgba(255,255,255,.9);
+  color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: .82rem; backdrop-filter: blur(4px); transition: background .12s, color .12s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.12);
+}
+.rc-btn:hover { background: var(--surface); color: var(--primary); }
+.rc-btn.danger:hover { color: var(--danger); }
+
+.inactive-card { opacity: .55; }
+
+/* Defaulters table */
+.defaulters-wrap {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+}
+.def-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.def-table th {
+  background: var(--bg); padding: .65rem 1rem; font-size: .7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .07em; color: var(--subtle);
+  border-bottom: 1px solid var(--border); text-align: left;
+}
+.def-table td { padding: .8rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.def-table tr:last-child td { border-bottom: none; }
+.def-table tbody tr { transition: background .1s; }
+.def-table tbody tr:hover td { background: var(--bg); }
+.def-av {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--primary-lt); color: var(--primary);
+  font-size: .65rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  overflow: hidden; flex-shrink: 0;
+}
+.def-av img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Assignments list (in right panel) */
+.assign-list { display: flex; flex-direction: column; gap: .5rem; }
+.assign-row {
+  background: var(--bg); border-radius: var(--radius-sm); padding: .65rem .9rem;
+  display: flex; align-items: center; gap: .65rem;
+}
+.assign-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--primary-lt); color: var(--primary);
+  font-size: .6rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  overflow: hidden; flex-shrink: 0;
+}
+.assign-av img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Empty state */
+.empty-box { text-align: center; padding: 3.5rem 1.5rem; display: flex; flex-direction: column; align-items: center; gap: .9rem; }
+.empty-ring { width: 72px; height: 72px; border-radius: 50%; background: var(--primary-lt); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+.empty-box h6 { font-weight: 700; margin: 0; }
+.empty-box p  { color: var(--muted); font-size: .85rem; margin: 0; max-width: 300px; }
+
+/* ── RIGHT PANEL ─────────────────────────────────────── */
+.r-detail {
+  border-left: 1px solid var(--border); background: var(--surface);
+  position: sticky; top: 88px; height: calc(100vh - 88px); overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.r-detail-head {
+  padding: 1.25rem 1.4rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: .75rem;
+}
+.r-detail-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+.r-detail-body { flex: 1; padding: 1.25rem 1.4rem; overflow-y: auto; }
+.r-detail-section { margin-bottom: 1.5rem; }
+.r-detail-section-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--subtle); margin-bottom: .6rem; display: block; }
+.duty-item {
+  display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0;
+  border-bottom: 1px solid var(--border); font-size: .83rem;
+}
+.duty-item:last-child { border-bottom: none; }
+.duty-bullet { width: 6px; height: 6px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.kpi-pill {
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: .35rem .7rem; font-size: .77rem; font-weight: 500; margin: .2rem;
+}
+.req-pill {
+  display: inline-flex; align-items: center;
+  background: #eff6ff; border: 1px solid #bfdbfe;
+  color: var(--primary); border-radius: 8px; padding: .3rem .65rem; font-size: .75rem; font-weight: 500; margin: .2rem;
+}
+
+/* Assign modal select2-style multi-select */
+.assign-user-list {
+  max-height: 200px; overflow-y: auto; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: .35rem;
+}
+.assign-user-item {
+  display: flex; align-items: center; gap: .6rem; padding: .4rem .55rem;
+  border-radius: 7px; cursor: pointer; transition: background .1s;
+}
+.assign-user-item:hover { background: var(--bg); }
+.assign-user-item input[type=checkbox] { accent-color: var(--primary); width: 15px; height: 15px; flex-shrink: 0; }
+
+/* ── BADGES ──────────────────────────────────────────── */
+.badge-dept {
+  font-size: .68rem; font-weight: 600; padding: 2px 9px; border-radius: 99px;
+  background: #f1f5f9; color: #475569; display: inline-block;
+}
+.badge-role-sys {
+  font-size: .68rem; font-family: var(--ff-mono); padding: 2px 8px; border-radius: 6px;
+  background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;
+}
+.warn-badge {
+  font-size: .68rem; font-weight: 700; padding: 2px 9px; border-radius: 99px;
+  background: #fef3c7; color: var(--warn); display: inline-flex; align-items: center; gap: .3rem;
+}
+
+/* ── MODAL ───────────────────────────────────────────── */
+.modal-content { border-radius: var(--radius); border: none; box-shadow: var(--shadow-lg); }
+.modal-header  { border-bottom: 1px solid var(--border); padding: 1.15rem 1.5rem; align-items: center; }
+.modal-body    { padding: 1.5rem; }
+.modal-footer  { border-top: 1px solid var(--border); padding: 1rem 1.5rem; }
+.modal-title   { font-weight: 700; font-size: .96rem; margin: 0; font-family: var(--ff); }
+.modal-header .close { padding:0;margin:0;opacity:.5;font-size:1.4rem;line-height:1;background:none;border:none;cursor:pointer; }
+.modal-header .close:hover { opacity:1; }
+.form-label { font-weight: 600; font-size: .8rem; margin-bottom: .3rem; display: block; }
+.form-control { border-radius: var(--radius-sm) !important; font-family: var(--ff); font-size: .85rem; }
+.form-control:focus { border-color: var(--primary) !important; box-shadow: 0 0 0 3px rgba(37,99,235,.1) !important; }
+.form-text-sm { font-size: .75rem; color: var(--muted); margin-top: .2rem; }
+
+/* Duties / KPIs dynamic list */
+.dynamic-list-item {
+  display: flex; align-items: center; gap: .4rem; margin-bottom: .4rem;
+}
+.dynamic-list-item input { flex: 1; }
+.btn-remove-item {
+  width: 28px; height: 28px; border-radius: 6px; border: none; background: #fee2e2;
+  color: var(--danger); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; flex-shrink: 0;
+}
+
+/* Color swatches */
+.color-swatches { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .25rem; }
+.c-swatch { width: 26px; height: 26px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: transform .1s; }
+.c-swatch:hover { transform: scale(1.2); }
+.c-swatch.selected { border-color: #0f1623; }
+
+/* Tabs in role detail */
+.detail-tabs { display: flex; border-bottom: 1px solid var(--border); }
+.d-tab-btn {
+  border: none; background: none; font-family: var(--ff); font-size: .8rem; font-weight: 500;
+  color: var(--muted); cursor: pointer; padding: .65rem .9rem;
+  border-bottom: 2px solid transparent; transition: color .12s, border-color .12s;
+}
+.d-tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+.d-tab-content { display: none; }
+.d-tab-content.active { display: block; }
+
+/* Shimmer */
+.shimmer { background: linear-gradient(90deg,var(--border) 25%,#f8fafc 50%,var(--border) 75%); background-size:200% 100%; animation:sh 1.2s infinite; border-radius:var(--radius-sm); }
+@keyframes sh { to { background-position:-200% 0; } }
+
+/* Toast */
+#wf-toasts { position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.4rem;pointer-events:none; }
+.wf-toast { background:var(--text);color:#fff;border-radius:10px;padding:.65rem 1rem;font-size:.82rem;font-family:var(--ff);display:flex;align-items:center;gap:.6rem;pointer-events:all;box-shadow:var(--shadow-lg);animation:tin .22s ease;max-width:280px; }
+.wf-toast.success{background:#065f46;}.wf-toast.danger{background:#991b1b;}.wf-toast.warning{background:#78350f;}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+@media(max-width:1100px){ .r-layout{grid-template-columns:220px 1fr;} .r-detail{display:none;} }
+@media(max-width:720px){ .r-layout{grid-template-columns:1fr;} .r-sidebar{display:none;} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    {% include 'incs/sidenav.html' %}
+    {% include 'incs/topnav.html' %}
+    <div class="content-page">
+
+<!-- ── TOP BAR ──────────────────────────────────────── -->
+<div class="r-topbar">
+  <div class="r-topbar-title">
+    <a href="/" class="btn-home"><i class="ri-home-4-line"></i><span class="d-none d-sm-inline">Home</span></a>
+    <a href="/projects" class="btn-home"><i class="ri-kanban-view"></i><span class="d-none d-md-inline">Projects</span></a>
+    <i class="ri-briefcase-4-line" style="color:var(--primary);font-size:1.1rem"></i>
+    Roles &amp; Responsibilities
+    <span class="r-topbar-badge">ADMIN</span>
+  </div>
+  <div class="d-flex align-items-center" style="gap:.5rem">
+    <div class="r-search" style="margin:0">
+      <i class="ri-search-line" style="color:var(--subtle)"></i>
+      <input id="roleSearchInput" type="text" placeholder="Search roles…">
+    </div>
+    <button class="btn-primary" id="btnNewRole"><i class="ri-add-line"></i> New Role</button>
+  </div>
+</div>
+
+<!-- ── LAYOUT ─────────────────────────────────────────── -->
+<div class="r-layout">
+
+  <!-- ── LEFT SIDEBAR ──────────────────────────────── -->
+  <aside class="r-sidebar">
+    <div class="r-sidebar-label">View</div>
+    <button class="r-nav-item active" data-view="roles">
+      <i class="ri-briefcase-line"></i> All Roles
+      <span class="badge-count" id="cnt-roles">0</span>
+    </button>
+    <button class="r-nav-item warn-item" data-view="defaulters">
+      <i class="ri-user-unfollow-line"></i> Unassigned Staff
+      <span class="badge-count" id="cnt-defaulters">0</span>
+    </button>
+    <button class="r-nav-item" data-view="assignments">
+      <i class="ri-user-settings-line"></i> All Assignments
+      <span class="badge-count" id="cnt-assignments">0</span>
+    </button>
+
+    <div class="r-sidebar-label mt-2">Departments</div>
+    <button class="r-nav-item" data-dept="">
+      <i class="ri-building-2-line"></i> All Departments
+    </button>
+    <div id="deptList"></div>
+  </aside>
+
+  <!-- ── MAIN ──────────────────────────────────────── -->
+  <main class="r-main">
+
+    <!-- ROLES VIEW -->
+    <div id="view-roles">
+      <div class="r-section-head">
+        <h5 id="mainViewLabel">All Roles</h5>
+        <span class="text-muted" style="font-size:.8rem" id="roleResultCount"></span>
+      </div>
+      <div class="roles-grid" id="rolesGrid">
+        <div style="height:160px" class="role-card"><div class="shimmer" style="height:100%"></div></div>
+        <div style="height:160px" class="role-card"><div class="shimmer" style="height:100%"></div></div>
+        <div style="height:160px" class="role-card"><div class="shimmer" style="height:100%"></div></div>
+      </div>
+    </div>
+
+    <!-- DEFAULTERS VIEW -->
+    <div id="view-defaulters" style="display:none">
+      <div class="r-section-head">
+        <h5>
+          <span class="warn-badge mr-2"><i class="ri-alert-line"></i> Unassigned Staff</span>
+        </h5>
+        <button class="btn-primary" id="btnBulkAssign" style="display:none">
+          <i class="ri-user-received-line"></i> Assign Role to Selected
+        </button>
+      </div>
+      <div class="defaulters-wrap">
+        <table class="def-table">
+          <thead><tr>
+            <th style="width:40px"><input type="checkbox" id="chkAll" style="accent-color:var(--primary)"></th>
+            <th>Staff Member</th><th>System Roles</th><th>Department</th><th style="width:120px">Action</th>
+          </tr></thead>
+          <tbody id="defaultersBody">
+            <tr><td colspan="5" class="text-center text-muted p-4" style="font-size:.85rem">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ASSIGNMENTS VIEW -->
+    <div id="view-assignments" style="display:none">
+      <div class="r-section-head">
+        <h5>All Role Assignments</h5>
+        <span class="text-muted" style="font-size:.8rem" id="assignResultCount"></span>
+      </div>
+      <div class="defaulters-wrap">
+        <table class="def-table">
+          <thead><tr>
+            <th>Staff Member</th><th>Assigned Role</th><th>Department</th><th>Assigned By</th><th>Date</th><th style="width:60px"></th>
+          </tr></thead>
+          <tbody id="assignmentsBody">
+            <tr><td colspan="6" class="text-center text-muted p-4" style="font-size:.85rem">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── RIGHT DETAIL PANEL ────────────────────────── -->
+  <div class="r-detail" id="rDetail">
+    <div class="empty-box" style="flex:1;justify-content:center">
+      <div class="empty-ring"><i class="ri-briefcase-line"></i></div>
+      <h6>Select a role</h6>
+      <p>Click any role card to view its full details, duties, KPIs and who's assigned.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── ROLE MODAL (Create / Edit) ─────────────────────── -->
+<div class="modal fade" id="roleModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="roleModalTitle">New Role</h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="rm-id">
+        <div class="form-row">
+          <div class="col-md-7 form-group">
+            <label class="form-label">Role Title <span class="text-danger">*</span></label>
+            <input id="rm-title" type="text" class="form-control" placeholder="e.g. Senior Software Engineer">
+          </div>
+          <div class="col-md-5 form-group">
+            <label class="form-label">Department</label>
+            <input id="rm-dept" type="text" class="form-control" placeholder="e.g. Engineering" list="deptSuggestions">
+            <datalist id="deptSuggestions"></datalist>
+          </div>
+          <div class="col-12 form-group">
+            <label class="form-label">Role Summary / Description</label>
+            <textarea id="rm-desc" class="form-control" rows="3" placeholder="Brief description of what this role entails…"></textarea>
+          </div>
+        </div>
+
+        <!-- Duties -->
+        <div class="form-group">
+          <label class="form-label">Key Duties &amp; Responsibilities</label>
+          <div id="dutiesList"></div>
+          <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addListItem('dutiesList','duty-item','Enter a duty…')">
+            <i class="ri-add-line mr-1"></i>Add Duty
+          </button>
+        </div>
+
+        <!-- KPIs -->
+        <div class="form-group">
+          <label class="form-label">Key Performance Indicators (KPIs)</label>
+          <div id="kpisList"></div>
+          <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addListItem('kpisList','kpi-item','Enter a KPI…')">
+            <i class="ri-add-line mr-1"></i>Add KPI
+          </button>
+        </div>
+
+        <!-- Requirements -->
+        <div class="form-group">
+          <label class="form-label">Requirements / Qualifications</label>
+          <div id="reqsList"></div>
+          <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addListItem('reqsList','req-item','Enter a requirement…')">
+            <i class="ri-add-line mr-1"></i>Add Requirement
+          </button>
+        </div>
+
+        <!-- Appearance -->
+        <div class="form-row">
+          <div class="col-md-8 form-group">
+            <label class="form-label">Accent Colour</label>
+            <div class="color-swatches" id="rmColorSwatches">
+              <div class="c-swatch selected" data-color="#4f46e5" style="background:#4f46e5"></div>
+              <div class="c-swatch" data-color="#7c3aed" style="background:#7c3aed"></div>
+              <div class="c-swatch" data-color="#059669" style="background:#059669"></div>
+              <div class="c-swatch" data-color="#d97706" style="background:#d97706"></div>
+              <div class="c-swatch" data-color="#dc2626" style="background:#dc2626"></div>
+              <div class="c-swatch" data-color="#0891b2" style="background:#0891b2"></div>
+              <div class="c-swatch" data-color="#c026d3" style="background:#c026d3"></div>
+              <div class="c-swatch" data-color="#64748b" style="background:#64748b"></div>
+            </div>
+            <input type="hidden" id="rm-color" value="#4f46e5">
+          </div>
+          <div class="col-md-4 form-group">
+            <label class="form-label">Icon (RemixIcon class)</label>
+            <input id="rm-icon" type="text" class="form-control" placeholder="ri-briefcase-line" style="font-size:.78rem">
+            <div class="form-text-sm">e.g. ri-code-line, ri-bar-chart-line</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light" data-dismiss="modal">Cancel</button>
+        <button id="btnSaveRole" class="btn-primary"><i class="ri-check-line"></i> <span id="btnSaveRoleLabel">Create Role</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ASSIGN MODAL ────────────────────────────────────── -->
+<div class="modal fade" id="assignModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="assignModalTitle">Assign Role</h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted" style="font-size:.83rem">
+          Assigning role: <strong id="assignRoleName"></strong>
+        </p>
+        <div class="form-group">
+          <label class="form-label">Select Staff <span class="text-danger">*</span></label>
+          <input id="assignSearch" type="text" class="form-control form-control-sm mb-2" placeholder="Filter staff…">
+          <div class="assign-user-list" id="assignUserList">
+            <p class="text-muted text-center small p-2">Loading users…</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Note (optional)</label>
+          <input id="assignNote" type="text" class="form-control" placeholder="e.g. Temporary cover for Q3">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light" data-dismiss="modal">Cancel</button>
+        <button id="btnConfirmAssign" class="btn-primary"><i class="ri-user-received-line"></i> Assign</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIRM DEACTIVATE MODAL ──────────────────────── -->
+<div class="modal fade" id="deactivateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-body p-4 text-center">
+        <div style="width:52px;height:52px;border-radius:50%;background:#fef3c7;color:var(--warn);display:flex;align-items:center;justify-content:center;margin:0 auto .9rem;font-size:1.3rem">
+          <i class="ri-archive-line"></i>
+        </div>
+        <h6 class="font-weight-bold mb-1">Deactivate Role?</h6>
+        <p class="text-muted small mb-0" id="deactivateMsg">This will unassign all current holders.</p>
+      </div>
+      <div class="modal-footer justify-content-center" style="gap:.5rem">
+        <button class="btn btn-light btn-sm" data-dismiss="modal">Cancel</button>
+        <button id="btnConfirmDeactivate" class="btn btn-warning btn-sm">Deactivate</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="wf-toasts"></div>
+
+    </div><!-- /content-page -->
+</div><!-- /wrapper -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ── Modal compat ────────────────────────────────────── */
+function getModal(el) {
+  if (!el) return { show:()=>{}, hide:()=>{} };
+  if (typeof $ !== 'undefined' && $.fn?.modal) return { show:()=>$(el).modal('show'), hide:()=>$(el).modal('hide') };
+  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+    return bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(el) : new bootstrap.Modal(el);
+  }
+  return { show:()=>{}, hide:()=>{} };
+}
+
+/* ── State ───────────────────────────────────────────── */
+let allRoles       = [];
+let allUsers       = [];
+let allAssignments = [];
+let defaulters     = [];
+let departments    = [];
+let selectedRole   = null;
+let assignTargetRoleId = null;
+let deactivateTargetId = null;
+let filterDept     = '';
+let selectedDefIds = new Set();
+let rmColor        = '#4f46e5';
+
+/* ── Boot ────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  loadAll();
+  bindNav();
+  bindSearch();
+  bindRoleModal();
+  bindAssignModal();
+  bindDeactivateModal();
+  bindColorSwatches();
+  document.getElementById('chkAll').addEventListener('change', e => toggleAllDefaulters(e.target.checked));
+  document.getElementById('btnBulkAssign').addEventListener('click', openBulkAssign);
+  document.getElementById('btnNewRole').addEventListener('click', () => openRoleModal());
+  document.getElementById('assignSearch').addEventListener('input', filterAssignList);
+});
+
+async function loadAll() {
+  await Promise.all([loadRoles(), loadUsers(), loadDefaulters(), loadAssignments(), loadDepartments()]);
+}
+
+/* ── Data fetching ───────────────────────────────────── */
+async function loadRoles() {
+  try {
+    const d  = await api('/api/roles?include_assignees=true&active_only=false');
+    allRoles = d.roles || [];
+    setText('cnt-roles', allRoles.filter(r => r.is_active).length);
+    renderRolesGrid(allRoles);
+  } catch(e) { toast(e.message, 'danger'); }
+}
+
+async function loadUsers() {
+  try {
+    const d = await api('/api/users-list');
+    allUsers = d.users || [];
+  } catch {}
+}
+
+async function loadDefaulters() {
+  try {
+    const d  = await api('/api/roles/defaulters');
+    defaulters = d.defaulters || [];
+    setText('cnt-defaulters', defaulters.length);
+    renderDefaulters(defaulters);
+  } catch(e) { console.warn(e); }
+}
+
+async function loadAssignments() {
+  try {
+    const d = await api('/api/roles/assignments');
+    allAssignments = d.assignments || [];
+    setText('cnt-assignments', allAssignments.length);
+    renderAssignments(allAssignments);
+  } catch(e) { console.warn(e); }
+}
+
+async function loadDepartments() {
+  try {
+    const d = await api('/api/roles/departments');
+    departments = d.departments || [];
+    renderDeptList(departments);
+    // Fill datalist
+    const dl = document.getElementById('deptSuggestions');
+    dl.innerHTML = departments.map(dep => '<option value="' + esc(dep) + '">').join('');
+  } catch {}
+}
+
+/* ── Render: roles grid ──────────────────────────────── */
+function renderRolesGrid(roles) {
+  const q      = document.getElementById('roleSearchInput').value.toLowerCase();
+  const active = filterDept
+    ? roles.filter(r => r.department === filterDept)
+    : roles;
+  const filtered = active.filter(r =>
+    !q || r.title.toLowerCase().includes(q) || (r.department||'').toLowerCase().includes(q)
+  );
+
+  setText('roleResultCount', filtered.length + ' role' + (filtered.length !== 1 ? 's' : ''));
+  const grid = document.getElementById('rolesGrid');
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1"><div class="empty-box">' +
+      '<div class="empty-ring"><i class="ri-briefcase-line"></i></div>' +
+      '<h6>No roles found</h6><p>Create your first role to get started.</p>' +
+      '<button class="btn-primary" onclick="openRoleModal()"><i class="ri-add-line mr-1"></i>Create Role</button>' +
+      '</div></div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(r => {
+    const iconBg  = r.color + '1a';
+    return '<div class="role-card' + (!r.is_active ? ' inactive-card' : '') +
+      (selectedRole?.id === r.id ? ' selected' : '') + '" onclick="selectRole(' + r.id + ')">' +
+      '<div class="rc-accent" style="background:' + r.color + '"></div>' +
+      '<div class="rc-body">' +
+        '<div class="rc-actions">' +
+          '<button class="rc-btn" title="Edit" onclick="event.stopPropagation();openRoleModal(' + JSON.stringify(r).replace(/"/g,'&quot;') + ')"><i class="ri-pencil-line"></i></button>' +
+          '<button class="rc-btn" title="Assign" onclick="event.stopPropagation();openAssignModal(' + r.id + ',\'' + esc(r.title) + '\')"><i class="ri-user-add-line"></i></button>' +
+          '<button class="rc-btn danger" title="Deactivate" onclick="event.stopPropagation();confirmDeactivate(' + r.id + ',\'' + esc(r.title) + '\')"><i class="ri-archive-line"></i></button>' +
+        '</div>' +
+        '<div class="rc-icon-wrap" style="background:' + iconBg + ';color:' + r.color + '"><i class="' + esc(r.icon||'ri-briefcase-line') + '"></i></div>' +
+        '<div class="rc-title">' + esc(r.title) + (!r.is_active ? ' <span style="font-size:.66rem;color:var(--subtle)">(inactive)</span>' : '') + '</div>' +
+        '<div class="rc-dept"><i class="ri-building-line"></i>' + esc(r.department || 'No department') + '</div>' +
+        '<div class="rc-stats">' +
+          '<span class="rc-stat"><i class="ri-user-line"></i> ' + (r.assigned_count||0) + ' assigned</span>' +
+          '<span class="rc-stat"><i class="ri-list-check"></i> ' + (r.duties?.length||0) + ' duties</span>' +
+        '</div>' +
+      '</div></div>';
+  }).join('');
+}
+
+/* ── Render: defaulters table ────────────────────────── */
+function renderDefaulters(list) {
+  const body = document.getElementById('defaultersBody');
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="5"><div class="empty-box p-4 text-center text-muted"><i class="ri-checkbox-circle-line" style="font-size:2rem;color:var(--success);display:block;margin-bottom:.5rem"></i><strong>All staff have roles assigned.</strong></div></td></tr>';
+    return;
+  }
+  body.innerHTML = list.map(u =>
+    '<tr>' +
+      '<td><input type="checkbox" class="def-chk" data-id="' + u.id + '" style="accent-color:var(--primary)" onchange="toggleDefaulterSelect(' + u.id + ',this.checked)"></td>' +
+      '<td>' +
+        '<div class="d-flex align-items-center" style="gap:.65rem">' +
+          '<div class="def-av">' + (u.photo ? '<img src="' + u.photo + '">' : initials(u.name || u.username)) + '</div>' +
+          '<div>' +
+            '<div style="font-weight:600;font-size:.84rem">' + esc(u.name || u.username) + '</div>' +
+            '<div style="font-size:.72rem;color:var(--muted)">@' + esc(u.username) + (u.email ? ' · ' + esc(u.email) : '') + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</td>' +
+      '<td>' + (u.role_label ? '<span class="badge-role-sys">' + esc(u.role_label) + '</span>' : '<span style="color:var(--subtle);font-size:.8rem">—</span>') + '</td>' +
+      '<td>' + (u.department ? '<span class="badge-dept">' + esc(u.department) + '</span>' : '<span style="color:var(--subtle);font-size:.8rem">—</span>') + '</td>' +
+      '<td>' +
+        '<button class="btn-primary" style="height:30px;font-size:.75rem;padding:0 .7rem" onclick="openAssignModalForUser(' + u.id + ')">' +
+          '<i class="ri-briefcase-line mr-1"></i>Assign' +
+        '</button>' +
+      '</td>' +
+    '</tr>'
+  ).join('');
+}
+
+/* ── Render: assignments table ───────────────────────── */
+function renderAssignments(list) {
+  setText('assignResultCount', list.length + ' assignment' + (list.length !== 1 ? 's' : ''));
+  const body = document.getElementById('assignmentsBody');
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="6" class="text-center text-muted p-4" style="font-size:.84rem">No assignments yet.</td></tr>';
+    return;
+  }
+  body.innerHTML = list.map(a =>
+    '<tr>' +
+      '<td>' +
+        '<div class="d-flex align-items-center" style="gap:.6rem">' +
+          '<div class="def-av">' + (a.user_photo ? '<img src="' + a.user_photo + '">' : initials(a.user_name)) + '</div>' +
+          '<div>' +
+            '<div style="font-weight:600;font-size:.84rem">' + esc(a.user_name) + '</div>' +
+            '<div style="font-size:.72rem;color:var(--muted)">@' + esc(a.user_username||'') + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</td>' +
+      '<td><span style="font-weight:600;font-size:.84rem;display:flex;align-items:center;gap:.35rem">' +
+        '<span style="width:9px;height:9px;border-radius:50%;background:' + a.role_color + ';display:inline-block;flex-shrink:0"></span>' +
+        esc(a.role_title||'—') +
+      '</span></td>' +
+      '<td>' + (a.department ? '<span class="badge-dept">' + esc(a.department) + '</span>' : '—') + '</td>' +
+      '<td style="font-size:.8rem;color:var(--muted)">' + esc(a.assigned_by_name||'—') + '</td>' +
+      '<td style="font-size:.78rem;color:var(--muted)">' + (a.assigned_at ? new Date(a.assigned_at).toLocaleDateString() : '—') + '</td>' +
+      '<td>' +
+        '<button class="btn btn-sm text-danger p-0" style="font-size:.8rem" title="Remove" onclick="unassign(' + a.id + ')">' +
+          '<i class="ri-close-circle-line"></i>' +
+        '</button>' +
+      '</td>' +
+    '</tr>'
+  ).join('');
+}
+
+/* ── Right panel: role detail ────────────────────────── */
+function selectRole(rid) {
+  const role = allRoles.find(r => r.id === rid);
+  if (!role) return;
+  selectedRole = role;
+  // Highlight card
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.role-card').forEach(c => {
+    if (c.onclick && c.onclick.toString().includes(rid)) c.classList.add('selected');
+  });
+  renderDetailPanel(role);
+}
+
+function renderDetailPanel(r) {
+  const iconBg = r.color + '1a';
+  const assignees = r.assignees || [];
+
+  document.getElementById('rDetail').innerHTML =
+    '<div class="r-detail-head">' +
+      '<div class="r-detail-icon" style="background:' + iconBg + ';color:' + r.color + '">' +
+        '<i class="' + esc(r.icon||'ri-briefcase-line') + '"></i>' +
+      '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:.94rem;font-weight:700">' + esc(r.title) + '</div>' +
+        '<div style="font-size:.75rem;color:var(--muted);margin-top:.15rem;display:flex;align-items:center;gap:.4rem">' +
+          '<i class="ri-building-line"></i>' + esc(r.department||'No department') +
+          ' · <span style="color:var(--primary);font-weight:600">' + assignees.length + ' assigned</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:.3rem">' +
+        '<button class="rc-btn" title="Edit" onclick="openRoleModal(' + JSON.stringify(r).replace(/'/g,"\'").replace(/"/g,'&quot;') + ')"><i class="ri-pencil-line"></i></button>' +
+        '<button class="rc-btn" style="color:var(--primary)" title="Assign" onclick="openAssignModal(' + r.id + ',\'' + esc(r.title) + '\')"><i class="ri-user-add-line"></i></button>' +
+      '</div>' +
+    '</div>' +
+
+    '<div style="padding:.5rem 0 0" class="r-detail-body">' +
+
+      '<div class="detail-tabs" id="detailTabs">' +
+        '<button class="d-tab-btn active" data-dtab="overview">Overview</button>' +
+        '<button class="d-tab-btn" data-dtab="duties">Duties (' + (r.duties?.length||0) + ')</button>' +
+        '<button class="d-tab-btn" data-dtab="kpis">KPIs (' + (r.kpis?.length||0) + ')</button>' +
+        '<button class="d-tab-btn" data-dtab="people">People (' + assignees.length + ')</button>' +
+      '</div>' +
+
+      // Overview
+      '<div class="d-tab-content active" id="dtab-overview" style="padding:1.1rem 0">' +
+        (r.description
+          ? '<p style="font-size:.85rem;color:var(--muted);line-height:1.6;margin-bottom:1rem">' + esc(r.description) + '</p>'
+          : '<p style="font-size:.82rem;color:var(--subtle)">No description provided.</p>') +
+        (r.requirements?.length
+          ? '<div class="r-detail-section">' +
+              '<span class="r-detail-section-label">Requirements</span>' +
+              '<div style="display:flex;flex-wrap:wrap">' +
+                r.requirements.map(req => '<span class="req-pill"><i class="ri-check-line mr-1"></i>' + esc(req) + '</span>').join('') +
+              '</div></div>'
+          : '') +
+      '</div>' +
+
+      // Duties
+      '<div class="d-tab-content" id="dtab-duties" style="padding:1.1rem 0">' +
+        (r.duties?.length
+          ? r.duties.map((d,i) =>
+              '<div class="duty-item">' +
+                '<span class="duty-bullet" style="background:' + r.color + '"></span>' +
+                '<span>' + esc(d) + '</span>' +
+              '</div>'
+            ).join('')
+          : '<p style="font-size:.82rem;color:var(--subtle)">No duties listed.</p>') +
+      '</div>' +
+
+      // KPIs
+      '<div class="d-tab-content" id="dtab-kpis" style="padding:1.1rem 0">' +
+        (r.kpis?.length
+          ? '<div style="display:flex;flex-wrap:wrap">' +
+              r.kpis.map(k => '<span class="kpi-pill"><i class="ri-bar-chart-2-line" style="color:' + r.color + '"></i>' + esc(k) + '</span>').join('') +
+            '</div>'
+          : '<p style="font-size:.82rem;color:var(--subtle)">No KPIs defined.</p>') +
+      '</div>' +
+
+      // People
+      '<div class="d-tab-content" id="dtab-people" style="padding:1.1rem 0">' +
+        (assignees.length
+          ? '<div class="assign-list">' +
+              assignees.map(a =>
+                '<div class="assign-row">' +
+                  '<div class="assign-av">' +
+                    (a.user_photo ? '<img src="' + a.user_photo + '">' : initials(a.user_name)) +
+                  '</div>' +
+                  '<div style="flex:1;min-width:0">' +
+                    '<div style="font-size:.84rem;font-weight:600">' + esc(a.user_name) + '</div>' +
+                    '<div style="font-size:.72rem;color:var(--muted)">Since ' + (a.assigned_at ? new Date(a.assigned_at).toLocaleDateString() : '—') + '</div>' +
+                  '</div>' +
+                  '<button class="btn btn-sm text-danger p-0" onclick="unassign(' + a.id + ')"><i class="ri-close-circle-line"></i></button>' +
+                '</div>'
+              ).join('') +
+            '</div>'
+          : '<div class="empty-box" style="padding:2rem 1rem">' +
+              '<div class="empty-ring" style="width:52px;height:52px;font-size:1.3rem"><i class="ri-user-line"></i></div>' +
+              '<h6 style="font-size:.88rem">No one assigned</h6>' +
+              '<button class="btn-primary" style="font-size:.78rem;height:30px" onclick="openAssignModal(' + r.id + ',\'' + esc(r.title) + '\')"><i class="ri-user-add-line mr-1"></i>Assign Now</button>' +
+            '</div>') +
+      '</div>' +
+
+    '</div>';
+
+  // Bind tabs
+  document.querySelectorAll('#detailTabs .d-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#detailTabs .d-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.d-tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      const el = document.getElementById('dtab-' + btn.dataset.dtab);
+      if (el) el.classList.add('active');
+    });
+  });
+}
+
+/* ── Dept sidebar ────────────────────────────────────── */
+function renderDeptList(depts) {
+  document.getElementById('deptList').innerHTML = depts.map(dep =>
+    '<button class="r-nav-item" data-dept="' + esc(dep) + '">' +
+      '<i class="ri-building-2-line"></i> ' + esc(dep) +
+    '</button>'
+  ).join('');
+  document.querySelectorAll('[data-dept]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-dept]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterDept = btn.dataset.dept;
+      switchView('roles');
+      renderRolesGrid(allRoles);
+    });
+  });
+}
+
+/* ── Nav / view switching ────────────────────────────── */
+function bindNav() {
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+}
+
+function switchView(v) {
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  ['roles','defaulters','assignments'].forEach(name => {
+    const el = document.getElementById('view-' + name);
+    if (el) el.style.display = name === v ? 'block' : 'none';
+  });
+}
+
+function bindSearch() {
+  let t;
+  document.getElementById('roleSearchInput').addEventListener('input', () => {
+    clearTimeout(t); t = setTimeout(() => renderRolesGrid(allRoles), 180);
+  });
+}
+
+/* ── Defaulter selection ─────────────────────────────── */
+function toggleDefaulterSelect(uid, checked) {
+  checked ? selectedDefIds.add(uid) : selectedDefIds.delete(uid);
+  document.getElementById('btnBulkAssign').style.display = selectedDefIds.size ? 'flex' : 'none';
+}
+function toggleAllDefaulters(checked) {
+  document.querySelectorAll('.def-chk').forEach(chk => {
+    chk.checked = checked;
+    const uid = parseInt(chk.dataset.id);
+    checked ? selectedDefIds.add(uid) : selectedDefIds.delete(uid);
+  });
+  document.getElementById('btnBulkAssign').style.display = selectedDefIds.size ? 'flex' : 'none';
+}
+function openBulkAssign() {
+  if (!selectedDefIds.size) return;
+  // Open assign modal without a pre-selected role, preset user checkboxes
+  openAssignModalForUsers([...selectedDefIds]);
+}
+
+/* ── Role modal ──────────────────────────────────────── */
+function openRoleModal(role) {
+  const editing = !!role;
+  document.getElementById('rm-id').value    = editing ? role.id    : '';
+  document.getElementById('rm-title').value = editing ? role.title : '';
+  document.getElementById('rm-dept').value  = editing ? (role.department||'') : '';
+  document.getElementById('rm-desc').value  = editing ? (role.description||'') : '';
+  document.getElementById('rm-icon').value  = editing ? (role.icon||'ri-briefcase-line') : 'ri-briefcase-line';
+  document.getElementById('roleModalTitle').textContent = editing ? 'Edit Role' : 'New Role';
+  document.getElementById('btnSaveRoleLabel').textContent = editing ? 'Save Changes' : 'Create Role';
+
+  const col = editing ? (role.color||'#4f46e5') : '#4f46e5';
+  rmColor = col;
+  document.getElementById('rm-color').value = col;
+  document.querySelectorAll('.c-swatch').forEach(s =>
+    s.classList.toggle('selected', s.dataset.color === col)
+  );
+
+  // Populate dynamic lists
+  populateDynamicList('dutiesList', 'duty-item', editing ? (role.duties||[]) : [], 'Enter a duty…');
+  populateDynamicList('kpisList',   'kpi-item',  editing ? (role.kpis||[])   : [], 'Enter a KPI…');
+  populateDynamicList('reqsList',   'req-item',  editing ? (role.requirements||[]) : [], 'Enter a requirement…');
+
+  getModal(document.getElementById('roleModal')).show();
+}
+
+function bindRoleModal() {
+  document.getElementById('btnSaveRole').addEventListener('click', async () => {
+    const title = document.getElementById('rm-title').value.trim();
+    if (!title) { toast('Role title is required', 'danger'); return; }
+
+    const id     = document.getElementById('rm-id').value;
+    const isEdit = !!id;
+    const btn    = document.getElementById('btnSaveRole');
+    btn.disabled = true;
+
+    try {
+      const url    = isEdit ? '/api/roles/' + id : '/api/roles';
+      const method = isEdit ? 'PUT' : 'POST';
+      await api(url, { method, body: JSON.stringify({
+        title,
+        department:   document.getElementById('rm-dept').value.trim() || null,
+        description:  document.getElementById('rm-desc').value.trim() || null,
+        color:        document.getElementById('rm-color').value,
+        icon:         document.getElementById('rm-icon').value.trim() || 'ri-briefcase-line',
+        duties:       getDynamicList('dutiesList'),
+        kpis:         getDynamicList('kpisList'),
+        requirements: getDynamicList('reqsList'),
+      })});
+      getModal(document.getElementById('roleModal')).hide();
+      toast(isEdit ? 'Role updated!' : 'Role created!', 'success');
+      await loadRoles(); await loadDepartments();
+      if (selectedRole?.id === parseInt(id)) {
+        const updated = allRoles.find(r => r.id === parseInt(id));
+        if (updated) renderDetailPanel(updated);
+      }
+    } catch(e) { toast(e.message, 'danger'); }
+    finally { btn.disabled = false; }
+  });
+}
+
+function bindColorSwatches() {
+  document.querySelectorAll('.c-swatch').forEach(s => {
+    s.addEventListener('click', () => {
+      document.querySelectorAll('.c-swatch').forEach(x => x.classList.remove('selected'));
+      s.classList.add('selected');
+      rmColor = s.dataset.color;
+      document.getElementById('rm-color').value = rmColor;
+    });
+  });
+}
+
+/* ── Dynamic list helpers ────────────────────────────── */
+function addListItem(containerId, className, placeholder) {
+  const container = document.getElementById(containerId);
+  const div = document.createElement('div');
+  div.className = 'dynamic-list-item';
+  div.innerHTML =
+    '<input type="text" class="form-control form-control-sm ' + className + '" placeholder="' + esc(placeholder) + '">' +
+    '<button type="button" class="btn-remove-item" onclick="this.parentElement.remove()"><i class="ri-close-line"></i></button>';
+  container.appendChild(div);
+  div.querySelector('input').focus();
+}
+
+function populateDynamicList(containerId, className, items, placeholder) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'dynamic-list-item';
+    div.innerHTML =
+      '<input type="text" class="form-control form-control-sm ' + className + '" value="' + esc(item) + '" placeholder="' + esc(placeholder) + '">' +
+      '<button type="button" class="btn-remove-item" onclick="this.parentElement.remove()"><i class="ri-close-line"></i></button>';
+    container.appendChild(div);
+  });
+}
+
+function getDynamicList(containerId) {
+  return Array.from(document.getElementById(containerId).querySelectorAll('input'))
+    .map(i => i.value.trim()).filter(Boolean);
+}
+
+/* ── Assign modal ────────────────────────────────────── */
+function openAssignModal(roleId, roleTitle) {
+  assignTargetRoleId = roleId;
+  document.getElementById('assignRoleName').textContent = roleTitle;
+  document.getElementById('assignModalTitle').textContent = 'Assign: ' + roleTitle;
+  document.getElementById('assignNote').value = '';
+  renderAssignUserList(allUsers, []);
+  getModal(document.getElementById('assignModal')).show();
+}
+
+function openAssignModalForUser(uid) {
+  // Pre-check the specific user, open assign modal with all roles available
+  // For simplicity: open the modal asking admin to pick a role first via role view
+  // But here we show the modal with this user pre-checked — requires a role to be selected
+  if (!allRoles.filter(r => r.is_active).length) {
+    toast('Create at least one role first', 'warning'); return;
+  }
+  const role = allRoles.find(r => r.is_active);
+  if (!role) return;
+  openAssignModal(role.id, role.title);
+  // Pre-check this user
+  setTimeout(() => {
+    const chk = document.querySelector('.assign-chk[data-uid="' + uid + '"]');
+    if (chk) chk.checked = true;
+  }, 100);
+}
+
+function openAssignModalForUsers(uids) {
+  if (!allRoles.filter(r => r.is_active).length) {
+    toast('Create at least one active role first', 'warning'); return;
+  }
+  const role = allRoles.find(r => r.is_active);
+  openAssignModal(role.id, role.title);
+  setTimeout(() => {
+    uids.forEach(uid => {
+      const chk = document.querySelector('.assign-chk[data-uid="' + uid + '"]');
+      if (chk) chk.checked = true;
+    });
+  }, 100);
+}
+
+function renderAssignUserList(users, preSelectedIds) {
+  const pre = new Set(preSelectedIds.map(String));
+  document.getElementById('assignUserList').innerHTML = users.map(u =>
+    '<label class="assign-user-item">' +
+      '<input type="checkbox" class="assign-chk" data-uid="' + u.id + '"' +
+        (pre.has(String(u.id)) ? ' checked' : '') + ' style="accent-color:var(--primary)">' +
+      '<div class="assign-av" style="width:26px;height:26px;font-size:.55rem">' +
+        (u.photo ? '<img src="' + u.photo + '">' : initials(u.name || u.username)) +
+      '</div>' +
+      '<div>' +
+        '<div style="font-size:.82rem;font-weight:600">' + esc(u.name || u.username) + '</div>' +
+        '<div style="font-size:.7rem;color:var(--muted)">@' + esc(u.username) + '</div>' +
+      '</div>' +
+    '</label>'
+  ).join('') || '<p class="text-muted text-center small p-2">No users found</p>';
+}
+
+function filterAssignList() {
+  const q = document.getElementById('assignSearch').value.toLowerCase();
+  const filtered = allUsers.filter(u =>
+    (u.name||'').toLowerCase().includes(q) || (u.username||'').toLowerCase().includes(q)
+  );
+  renderAssignUserList(filtered, []);
+}
+
+function bindAssignModal() {
+  document.getElementById('btnConfirmAssign').addEventListener('click', async () => {
+    const selectedIds = Array.from(document.querySelectorAll('.assign-chk:checked')).map(c => parseInt(c.dataset.uid));
+    if (!selectedIds.length) { toast('Select at least one staff member', 'danger'); return; }
+    if (!assignTargetRoleId)  { toast('No role selected', 'danger'); return; }
+
+    const btn  = document.getElementById('btnConfirmAssign');
+    btn.disabled = true;
+    try {
+      await api('/api/roles/' + assignTargetRoleId + '/assign', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_ids: selectedIds,
+          notes: document.getElementById('assignNote').value,
+        })
+      });
+      getModal(document.getElementById('assignModal')).hide();
+      toast(selectedIds.length + ' assignment(s) saved!', 'success');
+      selectedDefIds.clear();
+      document.getElementById('btnBulkAssign').style.display = 'none';
+      await Promise.all([loadRoles(), loadDefaulters(), loadAssignments()]);
+      if (selectedRole) selectRole(selectedRole.id);
+    } catch(e) { toast(e.message, 'danger'); }
+    finally { btn.disabled = false; }
+  });
+}
+
+/* ── Unassign ────────────────────────────────────────── */
+async function unassign(aid) {
+  if (!confirm('Remove this role assignment?')) return;
+  try {
+    await api('/api/roles/assignments/' + aid, { method: 'DELETE' });
+    toast('Assignment removed', 'warning');
+    await Promise.all([loadRoles(), loadDefaulters(), loadAssignments()]);
+    if (selectedRole) selectRole(selectedRole.id);
+  } catch(e) { toast(e.message, 'danger'); }
+}
+
+/* ── Deactivate ──────────────────────────────────────── */
+function confirmDeactivate(rid, title) {
+  deactivateTargetId = rid;
+  document.getElementById('deactivateMsg').textContent = '"' + title + '" will be deactivated and all holders unassigned.';
+  getModal(document.getElementById('deactivateModal')).show();
+}
+
+function bindDeactivateModal() {
+  document.getElementById('btnConfirmDeactivate').addEventListener('click', async () => {
+    if (!deactivateTargetId) return;
+    try {
+      await api('/api/roles/' + deactivateTargetId, { method: 'DELETE' });
+      getModal(document.getElementById('deactivateModal')).hide();
+      toast('Role deactivated', 'warning');
+      if (selectedRole?.id === deactivateTargetId) {
+        document.getElementById('rDetail').innerHTML =
+          '<div class="empty-box" style="flex:1;justify-content:center">' +
+            '<div class="empty-ring"><i class="ri-briefcase-line"></i></div>' +
+            '<h6>Role deactivated</h6><p>Select another role to view details.</p>' +
+          '</div>';
+        selectedRole = null;
+      }
+      await Promise.all([loadRoles(), loadDefaulters(), loadAssignments()]);
+    } catch(e) { toast(e.message, 'danger'); }
+    deactivateTargetId = null;
+  });
+}
+
+/* ── Utility ─────────────────────────────────────────── */
+async function api(url, opts={}) {
+  const res = await fetch(url, { headers: {'Content-Type':'application/json',...(opts.headers||{})}, ...opts });
+  const d   = await res.json();
+  if (!res.ok) throw new Error(d.error || res.statusText);
+  return d;
+}
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function initials(name) { return (name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'; }
+function esc(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg, type='success') {
+  const icons = {success:'ri-checkbox-circle-line',danger:'ri-close-circle-line',warning:'ri-alert-line'};
+  const el = document.createElement('div');
+  el.className = 'wf-toast ' + type;
+  el.innerHTML = '<i class="' + (icons[type]||'ri-information-line') + '"></i>' + esc(msg);
+  document.getElementById('wf-toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+</script>
+{% endblock %}

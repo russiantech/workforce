@@ -64,3 +64,10 @@
 #crudModal+.modal-backdrop {
     z-index: 1060;
 }
+
+/* For weighted stats */
+.badge-weight {
+  display:inline-flex;align-items:center;gap:.15rem;
+  font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:99px;
+  background:#e0e7ff;color:#4338ca;
+}

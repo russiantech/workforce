@@ -7,15 +7,13 @@
     <div class="content-page">
         <div class="container-fluid">
             <form method="post" action='' enctype="multipart/form-data">
-                {#{{ form.csrf_token }} #}
             {{ form.hidden_tag() }}
             <div class="row">
                 <div class="col-xl-3 col-lg-4">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
-                                <h4 class="card-title">
-                                    {{user.name or user.username}} </h4>
+                                <h4 class="card-title"> {{user.name or user.username}} </h4>
                             </div>
                         </div>
                         <div class="card-body">
@@ -23,7 +21,7 @@
 
                                     <div class="crm-profile-img-edit position-relative">
                                         <img id="selectedAvatar" class="crm-profile-pic rounded avatar-100"
-                                            src="{{ url_for('static', filename='images/user/' + (user.photo if user.photo else 'avater.webp')) }}" 
+                                            src="{{ user.photo or url_for('static', filename='images/logo/favicon.png') }}" 
                                             alt="{{ user.username }}">
                                         <div class="crm-p-image bg-primary">
                                             <i class="las la-pen upload-button"></i>
@@ -70,7 +68,7 @@
                                 <div class="form-group">
                                     {{ form.category.label }}
                                     <div class="dropdown bootstrap-select form-control">
-                                        {{ form.category(class="selectpicker form-control", disabled=(not current_user|has_role(['hr', 'dev', 'admin']))) }}
+                                        {{ form.category(class="selectpicker form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md', 'admin']))) }}
                                         {% if form.role.errors %}
                                         <div class="invalid-feedback alert alert-danger"> {% for error in form.role.errors %}{{ error }} ! {% endfor %}</div>
                                         {% endif %}
@@ -82,13 +80,13 @@
                                     {% if form.reg_num.errors %}
                                         <div class="invalid-feedback alert alert-danger"> {% for error in form.reg_num.errors %}{{ error }} ! {% endfor %}</div>
                                         {% else %}
-                                        {{ form.reg_num(class="form-control", placeholder="Registration Number", disabled=(not current_user|has_role(['hr', 'dev', 'md', 'admin']))) }}
+                                        {{ form.reg_num(class="form-control", placeholder="Reg/ID Number(Staffs or Students or others)", disabled=(not current_user|has_role(['hr', 'dev', 'md', 'md', 'admin']))) }}
                                         {% endif %}
                                 </div>
                                 <div class="form-group">
                                     {{ form.course.label }}
-                                    <div class="dropdown bootstrap-select form-control"> {# {% if not current_user|has_role(['hr', 'dev', 'analysis']) %} disabled {% endif %}) #}
-                                        {{ form.course(class="selectpicker form-control", disabled=(not current_user|has_role(['hr', 'dev', 'admin'])) ) }}
+                                    <div class="dropdown bootstrap-select form-control"> {# {% if not current_user|has_role(['hr', 'dev', 'md', 'analysis']) %} disabled {% endif %}) #}
+                                        {{ form.course(class="selectpicker form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md', 'admin'])) ) }}
                                         {% if form.course.errors %}
                                         <div class="invalid-feedback alert alert-danger"> {% for error in form.course.errors %}{{ error }} ! {% endfor %}</div>
                                         {% endif %}
@@ -97,7 +95,7 @@
                                 <div class="form-group">
                                     {{ form.completion_status.label }}
                                     <div class="dropdown bootstrap-select form-control">
-                                        {{ form.completion_status(class="selectpicker form-control", disabled=(not current_user|has_role(['hr', 'dev', 'admin']))) }}
+                                        {{ form.completion_status(class="selectpicker form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md', 'admin']))) }}
                                         {% if form.completion_status.errors %}
                                         <div class="invalid-feedback alert alert-danger"> {% for error in form.completion_status.errors %}{{ error }} ! {% endfor %}</div>
                                         {% endif %}
@@ -107,7 +105,7 @@
                                 <div class="form-group">
                                     {{ form.cert_status.label }}
                                     <div class="dropdown bootstrap-select form-control">
-                                        {{ form.cert_status(class="selectpicker form-control", disabled=(not current_user|has_role(['hr', 'dev', 'admin']))) }}
+                                        {{ form.cert_status(class="selectpicker form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md', 'admin']))) }}
                                         {% if form.cert_status.errors %}
                                         <div class="invalid-feedback alert alert-danger"> {% for error in form.cert_status.errors %}{{ error }} ! {% endfor %}</div>
                                         {% endif %}
@@ -148,15 +146,15 @@
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
                                 <h4 class="card-title">
-                                {{current_user.username}} information . 
-                                {% if current_user|has_role(['hr', 'dev', 'md']) %}
+                                {{user.name or user.username}} information . 
+                                {% if current_user|has_role(['hr', 'dev', 'md', 'md']) %}
                                 <label for="upload" class="btn me-2 btn-secondary rounded-pill me-2" tabindex="0">
                                     <span class="d-sm-block">Attach query</span>
                                     <i class="bx bx-upload d-block"></i>
                                     <input type="file" onchange="handleFileUpload('#uploadedQuery', event)" id="upload"  user-id="{{user.id}}"
                                      class="account-file-input" hidden accept="application/pdf,.doc,.docx">
                                 </label>                                
-                                  <img src="static/images/logo/favicon.png" alt="query" 
+                                  <img src="{{ current_user.photo or url_for('static', filename='images/logo/favicon.png') }}" alt="query" 
                                   class="rounded d-none" height="50" width="50" id="uploadedQuery">
                                   {# removed `d-block` to fix the desgin from `#uploadedQuery` #}
                                 {% endif %}
@@ -182,7 +180,7 @@
                                         </div>
                                         
                                         <div class="form-group col-md-12 col-sm-12">
-                                            <label>About: {{current_user.username}}</label>
+                                            <label>About: {{user.username}}</label>
                                             {% if form.about.errors %}
                                             <div class="invalid-feedback alert alert-danger"> {% for error in form.about.errors %}{{ error }} ! {% endfor %}</div>
                                             {% else %}
@@ -192,7 +190,7 @@
 
                                         <div class="form-group col-md-12">
                                             {{form.designation.label}}
-                                            {{ form.designation(class="form-control",  placeholder="Enter Your Job Designation", disabled=(not current_user|has_role(['hr', 'dev'])) ) }}
+                                            {{ form.designation(class="form-control",  placeholder="Enter Your Job Designation", disabled=(not current_user|has_role(['hr', 'dev', 'md'])) ) }}
                                             {% if form.designation.errors %}
                                             <div class="invalid-feedback alert alert-danger"> {% for error in form.designation.errors %}{{ error }} ! {% endfor %}</div>
                                             {% endif %}
@@ -220,7 +218,7 @@
 
                                         <div class="form-group col-md-4">
                                             {{form.academic_qualification.label}}
-                                            {{ form.academic_qualification(class="form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md'])) ) }}
+                                            {{ form.academic_qualification(class="form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md', 'md'])) ) }}
                                             {% if form.academic_qualification.errors %}
                                             <div class="invalid-tooltip"> {% for error in form.academic_qualification.errors %}{{ error }} ! {% endfor %}</div>
                                             {% endif %}
@@ -228,7 +226,7 @@
 
                                         <div class="form-group col-md-4">
                                             {{form.experience_years.label}}
-                                            {{ form.experience_years(class="selectpicker form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md']))) }}
+                                            {{ form.experience_years(class="selectpicker form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md', 'md']))) }}
                                             {% if form.experience_years.errors %}
                                             <div class="invalid-tooltip"> {% for error in form.experience_years.errors %}{{ error }} ! {% endfor %}</div>
                                             {% endif %}
@@ -236,7 +234,7 @@
 
                                         <div class="form-group col-md-4">
                                             {{form.experience_level.label}}
-                                            {{ form.experience_level(class="form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md']))) }}
+                                            {{ form.experience_level(class="form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md', 'md']))) }}
                                             {% if form.experience_level.errors %}
                                             <div class="invalid-tooltip"> {% for error in form.experience_level.errors %}{{ error }} ! {% endfor %}</div>
                                             {% endif %}
@@ -246,7 +244,7 @@
                                          {% endfor %}
                                         <div class="form-group col-md-6">
                                             {{form.dob.label}}
-                                            {{ form.dob(class="form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md']))) }}
+                                            {{ form.dob(class="form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md', 'md']))) }}
                                             {% if form.dob.errors %}
                                             <div class="invalid-tooltip"> {% for error in form.dob.errors %}{{ error }} ! {% endfor %}</div>
                                             {% endif %}
@@ -342,7 +340,7 @@
                                     <div class="row">
                                         <div class="form-group col-md-6">
                                             {{form.username.label}}
-                                            {{ form.username(class="form-control", disabled=(not current_user|has_role(['hr', 'dev', 'admin', 'md']))) }}
+                                            {{ form.username(class="form-control", disabled=(not current_user|has_role(['hr', 'dev', 'md', 'admin', 'md']))) }}
                                             {% if form.username.errors %}
                                             <div class="invalid-feedback alert alert-danger alert alert-danger"> {% for error in form.username.errors %}{{ error }} ! {% endfor %}</div>
                                             {% endif %}
@@ -352,7 +350,7 @@
                                                 {% if form.password.errors %}
                                                 <div class="invalid-feedback alert alert-danger"> {% for error in form.password.errors %}{{ error }} ! {% endfor %}</div>
                                                 {% else %}
-                                                {{ form.password(class="form-control", placeholder="Password", disabled=(not current_user|has_role(['hr', 'dev', 'admin', 'md']))) }}
+                                                {{ form.password(class="form-control", placeholder="Password", disabled=(not current_user|has_role(['hr', 'dev', 'md', 'admin', 'md']))) }}
                                                 {% endif %}
                                         </div>
                                     </div>
@@ -376,6 +374,7 @@
     </div>
     <!-- Modal Edit -->
     {% include 'incs/modal.html' %}
+    
 </div>
 </div>
 
@@ -446,6 +445,7 @@
     $(document).on('submit', 'form', function(e) {
         e.preventDefault(); updateUser();
     });
+
 /*
     function handleFileUpload(selectedImage="", event) {
         const fileInput = event.target;

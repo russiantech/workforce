@@ -46,6 +46,7 @@ def role_required(*required_roles):
         return wrapper
     return decorator
 
+
 def role_required_0(*required_roles):
     def decorator(view_func):
         @wraps(view_func)

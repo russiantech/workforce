@@ -1,0 +1,10 @@
+Hi {{ user.name or user.username }},
+
+{{ title }}
+
+{{ message }}
+
+{% if action_url %}View it here: {{ action_url }}{% endif %}
+
+--
+Workforce
