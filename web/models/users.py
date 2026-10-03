@@ -21,7 +21,7 @@ class User(db.Model, UserMixin):
     photo   = db.Column(db.String(1000))
     gender  = db.Column(db.String(50))
     city    = db.Column(db.String(50))
-    address = db.Column(db.String(50))
+    address = db.Column(db.String(500))
     about   = db.Column(db.String(5000))
 
     acct_no = db.Column(db.String(50))
